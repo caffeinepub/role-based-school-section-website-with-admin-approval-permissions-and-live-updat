@@ -1,116 +1,72 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix admin session refetch, application visibility, approval flow principal handling, and clearer admin dashboard errors",
+  "title": "Simplify Admin Dashboard error UI and gate admin-only queries",
   "requirements": [
     {
-      "id": "REQ-30",
-      "summary": "Ensure Admin shared-password login results in fresh, authorized admin-only data loads and lock mutations without stale unauthorized cache state (works for anonymous identity).",
+      "id": "REQ-55",
+      "summary": "Simplify Admin Dashboard load-failure UI to hide verbose technical details while still logging full errors to console.",
       "acceptanceCriteria": [
-        "After logging in via the Admin shared password flow, the Admin Dashboard loads Pending Applications and Approved Students without an 'Access Denied' / 'I am not admin' error.",
-        "Admin lock controls (master/section/item) can be toggled successfully after Admin login.",
-        "This fix works even when the user is not using Internet Identity (anonymous identity), since Admin login is password-based in this app."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/auth/AuthContext.tsx",
-          "operation": "modify",
-          "description": "On successful login(role change), clear or invalidate React Query caches that can retain stale unauthorized errors (especially admin-only queries like applications/students/locks) so the Admin Dashboard refetches with the new admin session. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminLoginPage.tsx",
-          "operation": "modify",
-          "description": "After shared-password admin login, trigger a predictable admin data refresh (e.g., by clearing/invalidation via AuthContext changes and/or navigating in a way that remounts admin queries) so real admins do not see a cached 'not admin' state. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Add a clear 'Retry/Refresh' action that manually refetches Pending Applications and Approved Students, and ensure the dashboard does not keep showing an old authorization error after login when refetch succeeds. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-31",
-      "summary": "Make student application submission and admin pending-list visibility reliable, with explicit English errors instead of silent empty states.",
-      "acceptanceCriteria": [
-        "Submitting a Student Application creates a pending record in the backend.",
-        "When an Admin opens the Admin Dashboard, the submitted application is visible in the Pending Applications table within the next auto-refresh cycle (or immediately after a manual refetch).",
-        "No silent empty-table state occurs due to failed backend calls; errors are shown as English error alerts."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update admin-listing queries (e.g., applications/students) to avoid returning silent empty arrays when the actor is unavailable or calls fail; throw meaningful errors so the UI renders an error state instead. Keep periodic refresh, and ensure invalidation on successful application submit remains. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Ensure the Pending Applications section distinguishes between: loading, true empty, and error states (including actor-not-available), and that errors show as English alerts rather than an empty table. Include a manual refetch control for applications. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/StudentApplyPage.tsx",
-          "operation": "modify",
-          "description": "Improve submission failure handling to show clear English errors (including extracted underlying error message when available) and ensure post-submit behavior encourages admin visibility (e.g., keeping invalidateQueries and optionally prompting user that admin may need to refresh). Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-32",
-      "summary": "Fix approval pipeline UI so approving a student completes without frontend errors; remove broken principal generation during approval; ensure student login navigation and session creation follow backend status.",
-      "acceptanceCriteria": [
-        "Clicking Approve for a pending application succeeds without throwing a frontend-side error.",
-        "After approval, the application is removed from the Pending Applications list and appears in Approved Students within the next refresh.",
-        "An approved student can log in on the Student Login page using the same username/password they submitted in the application and is navigated to /home with the correct role (student or studentEditor).",
-        "If the student is still pending, Student Login navigates to /pending-approval and shows no 'approved' access.",
-        "If credentials are invalid, the Student Login page shows a clear English error and does not create a session."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Remove/replace the broken deterministic principal generation in the approval mutation. Use a safe principal value compatible with the backend’s approval flow (e.g., avoid Principal.fromUint8Array(usernameBytes) which can throw) so approvals do not fail client-side; keep query invalidation for applications and approvedStudents on success. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Harden approve action UX: disable buttons while pending, show clearer English errors on failure (using existing error utilities), and ensure post-approve UI reflects refetch/invalidation (pending disappears; approved list updates). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/StudentLoginPage.tsx",
-          "operation": "modify",
-          "description": "Ensure login flow strictly follows backend status: only create a session for approved; route pending to /pending-approval; show clear English errors for rejected/invalidCredentials and do not create a session in those cases. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/auth/AuthContext.tsx",
-          "operation": "modify",
-          "description": "Ensure session creation/clearing semantics are correct for student roles: do not persist a session on failed login states, and clear relevant cached queries on logout and role transitions to prevent cross-role data leakage/stale role UI. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-33",
-      "summary": "Improve Admin Dashboard error messaging to avoid misleading 'Access Denied' when failures are non-auth, while keeping authorization protection and including underlying error details.",
-      "acceptanceCriteria": [
-        "When an admin-only query fails due to authorization, the UI shows an English message that tells the user to log in as Admin and indicates the request was unauthorized.",
-        "When an admin-only query fails for non-authorization reasons, the UI shows 'Could not load data' and includes the extracted underlying error message (using existing utilities) so debugging is possible.",
-        "The Admin Dashboard does not permanently show an authorization error if the user is actually logged in as Admin and backend calls are succeeding."
+        "When `getAllApplications()` or `getStudentsList()` fails, the Admin Dashboard does not show the long technical dump to the user.",
+        "The Admin Dashboard renders a short, generic English error message (e.g., “Could not load data. Please try again.”) and a Retry button.",
+        "Underlying error objects/details are still logged to the browser console for debugging."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/AdminDashboardPage.tsx",
           "operation": "modify",
-          "description": "Refine renderErrorAlert: for authorization-like errors, show guidance to log in as Admin and include the underlying extracted error message for debugging; for non-auth errors, show 'Could not load data' plus extracted message. Ensure the alert state is replaced by data once refetch succeeds (no sticky access-denied view). Verify the component's usage instructions before implementing."
+          "description": "Update the Admin Dashboard error rendering to remove the canister-stopped/technical-dump block and stop displaying raw error strings (Request ID / reject code / IC0508 / HTTP details). Show a short generic message + Retry button, while keeping full error objects logged via console.error for debugging."
         },
         {
           "path": "frontend/src/utils/adminErrors.ts",
           "operation": "modify",
-          "description": "Improve authorization error detection and message extraction robustness (e.g., include more patterns used by backend traps, preserve original message text for display) so the dashboard can accurately distinguish unauthorized vs other failures. Verify the component's usage instructions before implementing."
+          "description": "Add a small helper for user-facing (sanitized) error text selection so the UI can display generic messages while preserving getErrorMessage() for console/debug usage. This supports hiding verbose technical details from end users."
         },
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Update user-facing mutation failure toasts within the Admin Dashboard (approve/reject/promote/demote/lock toggles) to avoid showing verbose technical error strings to end users; keep detailed error logging in the console for debugging."
+        }
+      ]
+    },
+    {
+      "id": "REQ-56",
+      "summary": "Replace Admin Dashboard authorization-related error wording with neutral, non-admin-check messaging.",
+      "acceptanceCriteria": [
+        "If an authorization failure happens, the Admin Dashboard does not display “Access Denied” or similar admin-check text.",
+        "The Admin Dashboard shows neutral English text (e.g., “Could not load data. Please log in again and retry.”) plus a Retry button.",
+        "Authorization protection is not removed from backend calls; only the UI messaging is changed."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Remove user-facing titles/messages like “Access Denied” / “You need to be logged in as Admin...” from the Admin Dashboard error UI. Use neutral English messaging and keep a Retry action. (Backend authorization remains unchanged.)"
+        },
+        {
+          "path": "frontend/src/utils/adminErrors.ts",
+          "operation": "modify",
+          "description": "Ensure the error categorization and/or new public-message helper can map authorization failures to neutral retry guidance (e.g., log in again), without exposing admin-check logic in user-facing strings."
+        }
+      ]
+    },
+    {
+      "id": "REQ-57",
+      "summary": "Prevent non-admin sessions from triggering admin-only data fetching on non-admin UI surfaces (e.g., Home page).",
+      "acceptanceCriteria": [
+        "When logged in as Student or Visitor, the Home page does not call `getAllApplications()` and does not produce admin-only query errors in the console.",
+        "When logged in as Admin, the Home page still loads pending application counts and shows the admin-only cards as before."
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Ensure admin-only queries surface errors (instead of empty arrays) so the dashboard can display the correct error category and underlying message, and configure query behavior to refetch appropriately after admin login/invalidation. Verify the component's usage instructions before implementing."
+          "description": "Update the useGetAllApplications() hook to accept an optional configuration (e.g., an enabled override) so calling pages can gate admin-only queries without changing backend authorization. This will be driven by the authorization-based session role on the frontend (verify the authorization component's usage instructions before implementing)."
+        },
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Gate the admin-only applications query on the Home page using the current session role (isAdmin). Ensure getAllApplications() is not queried for Student/Visitor sessions, while keeping the existing admin-only cards and pending count behavior for Admin sessions (verify the authorization component's usage instructions before implementing)."
         }
       ]
     }

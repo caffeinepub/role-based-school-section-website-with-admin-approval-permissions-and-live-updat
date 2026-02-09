@@ -1,94 +1,83 @@
 {
   "kind": "build_request",
-  "title": "Fix admin authorization and student application visibility/login issues",
-  "priority": "high",
+  "title": "Hide verbose backend/admin error details and simplify Admin Dashboard error UI",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-30",
-      "text": "Fix Admin shared-password sessions so an Admin user can successfully call admin-only backend methods (e.g., getAllApplications, getStudentsList, setMasterLock, setSectionLock, setItemLock) and the Admin Dashboard no longer shows an authorization error for real admins.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "now it is not let anyone enter as student if he is regester but the application is not showing in admins dashboard and show ind i am not admin remove this error to the dashdord .plz fix all problem"
-        ]
-      },
-      "acceptanceCriteria": [
-        "After logging in via the Admin shared password flow, the Admin Dashboard loads Pending Applications and Approved Students without an 'Access Denied' / 'I am not admin' error.",
-        "Admin lock controls (master/section/item) can be toggled successfully after Admin login.",
-        "This fix works even when the user is not using Internet Identity (anonymous identity), since Admin login is password-based in this app."
-      ]
-    },
-    {
-      "id": "REQ-31",
-      "text": "Ensure student applications submitted from the Student Apply page reliably appear in the Admin Dashboard Pending Applications list for admins.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "the application is not showing in admins dashboard"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Submitting a Student Application creates a pending record in the backend.",
-        "When an Admin opens the Admin Dashboard, the submitted application is visible in the Pending Applications table within the next auto-refresh cycle (or immediately after a manual refetch).",
-        "No silent empty-table state occurs due to failed backend calls; errors are shown as English error alerts."
-      ]
-    },
-    {
-      "id": "REQ-32",
-      "text": "Fix the approval pipeline so approving a pending student works end-to-end (approval action succeeds, application disappears from pending, student appears in Approved Students, and the approved student can log in). Remove any broken principal-generation behavior used during approval that can prevent approvals from completing.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "now it is not let anyone enter as student if he is regester"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Clicking Approve for a pending application succeeds without throwing a frontend-side error.",
-        "After approval, the application is removed from the Pending Applications list and appears in Approved Students within the next refresh.",
-        "An approved student can log in on the Student Login page using the same username/password they submitted in the application and is navigated to /home with the correct role (student or studentEditor).",
-        "If the student is still pending, Student Login navigates to /pending-approval and shows no 'approved' access.",
-        "If credentials are invalid, the Student Login page shows a clear English error and does not create a session."
-      ]
-    },
-    {
-      "id": "REQ-33",
-      "text": "Update Admin Dashboard error messaging so that the dashboard does not show a misleading 'Access Denied' / 'You do not have permission' state when the real issue is misconfigured admin initialization or other non-auth failures. Keep authorization protection, but show clearer English guidance and include the underlying error message for debugging.",
+      "id": "REQ-55",
+      "text": "Update the Admin Dashboard error UI so it no longer shows the “Service Temporarily Unavailable” / canister-stopped message block and does not display verbose technical error details (e.g., Request ID, Reject code, IC0508, HTTP details) to end users.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-4"
         ],
         "quotes": [
-          "show ind i am not admin remove this error to the dashdord"
+          "remove this tipe of all error i dont need chack of admin in it"
         ]
       },
       "acceptanceCriteria": [
-        "When an admin-only query fails due to authorization, the UI shows an English message that tells the user to log in as Admin and indicates the request was unauthorized.",
-        "When an admin-only query fails for non-authorization reasons, the UI shows 'Could not load data' and includes the extracted underlying error message (using existing utilities) so debugging is possible.",
-        "The Admin Dashboard does not permanently show an authorization error if the user is actually logged in as Admin and backend calls are succeeding."
+        "When `getAllApplications()` or `getStudentsList()` fails, the Admin Dashboard does not show the long technical dump to the user.",
+        "The Admin Dashboard renders a short, generic English error message (e.g., “Could not load data. Please try again.”) and a Retry button.",
+        "Underlying error objects/details are still logged to the browser console for debugging."
+      ]
+    },
+    {
+      "id": "REQ-56",
+      "text": "Remove Admin Dashboard user-facing error messaging that explicitly mentions admin authorization checks (e.g., titles like “Access Denied” and messages like “You need to be logged in as Admin to view this data”). Replace with neutral English error text that does not reference admin-check logic.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "i dont need chack of admin in it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "If an authorization failure happens, the Admin Dashboard does not display “Access Denied” or similar admin-check text.",
+        "The Admin Dashboard shows neutral English text (e.g., “Could not load data. Please log in again and retry.”) plus a Retry button.",
+        "Authorization protection is not removed from backend calls; only the UI messaging is changed."
+      ]
+    },
+    {
+      "id": "REQ-57",
+      "text": "Gate admin-only data fetching on admin-only UI surfaces so non-admin users do not trigger admin-only backend queries (e.g., do not run `useGetAllApplications()` on the Home page unless the current session role is Admin).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "i dont need chack of admin in it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When logged in as Student or Visitor, the Home page does not call `getAllApplications()` and does not produce admin-only query errors in the console.",
+        "When logged in as Admin, the Home page still loads pending application counts and shows the admin-only cards as before."
       ]
     }
   ],
   "constraints": [
-    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui (compose instead).",
-    "Backend must remain a single Motoko actor; keep all logic in backend/main.mo and only add backend/migration.mo if a state migration is required."
+    "Do not modify any files under frontend/src/components/ui (immutable shadcn components).",
+    "Do not modify frontend/src/main.tsx (immutable path).",
+    "Keep backend authorization and access control intact; only change frontend error presentation and when queries run."
   ],
   "nonGoals": [
-    "Adding third-party authentication providers (only existing session approach + optional Internet Identity context is allowed).",
-    "Adding external databases or off-chain storage.",
-    "Building real-time websockets or push notifications (continue using React Query refresh/invalidation)."
+    "Do not fix or restart a stopped backend canister (this is an environment/deployment issue).",
+    "Do not remove backend role checks for admin-only methods like `getAllApplications()` and `getStudentsList()`."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

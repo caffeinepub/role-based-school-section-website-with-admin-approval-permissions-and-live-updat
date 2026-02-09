@@ -1,65 +1,70 @@
 /**
- * Utility functions for handling and categorizing admin-related errors
+ * Utility functions for extracting and categorizing admin-related errors.
+ * Provides both detailed error messages for console logging and sanitized user-facing messages.
  */
 
+export type ErrorCategory = 'canister-stopped' | 'authorization' | 'generic';
+
 /**
- * Extract a readable error message from various error types
+ * Extract detailed error message from various error types (for console logging)
  */
 export function getErrorMessage(error: unknown): string {
-  if (!error) return 'An unknown error occurred';
-  
-  if (typeof error === 'string') return error;
-  
-  if (error instanceof Error) return error.message;
-  
-  if (typeof error === 'object' && error !== null) {
-    // Check for common error properties
-    if ('message' in error && typeof error.message === 'string') {
-      return error.message;
-    }
-    
-    // Check for nested error messages (common in IC errors)
-    if ('error' in error && typeof error.error === 'object' && error.error !== null) {
-      if ('message' in error.error && typeof error.error.message === 'string') {
-        return error.error.message;
-      }
-    }
-    
-    // Try to stringify the error object
-    try {
-      const stringified = JSON.stringify(error);
-      // If it's just an empty object, return a generic message
-      if (stringified === '{}') {
-        return 'An error occurred';
-      }
-      return stringified;
-    } catch {
-      return 'An error occurred';
-    }
+  if (error instanceof Error) {
+    return error.message;
   }
-  
-  return 'An unknown error occurred';
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String(error.message);
+  }
+  return 'Unknown error occurred';
 }
 
 /**
- * Check if an error is likely an authorization/access denial error
+ * Check if error is a canister-stopped error
  */
-export function isAuthorizationError(error: unknown): boolean {
-  const message = getErrorMessage(error).toLowerCase();
+export function isCanisterStoppedError(error: unknown): boolean {
+  const message = getErrorMessage(error);
+  return message.includes('is stopped') || 
+         message.includes('IC0508') ||
+         message.includes('CallContextManager');
+}
+
+/**
+ * Categorize error into one of three types
+ */
+export function categorizeError(error: unknown): ErrorCategory {
+  const message = getErrorMessage(error);
   
-  // Check for common authorization error patterns
-  const authPatterns = [
-    'unauthorized',
-    'access denied',
-    'permission denied',
-    'not authorized',
-    'forbidden',
-    'only admins',
-    'only administrators',
-    'requires admin',
-    'not admin',
-    'admin only',
-  ];
+  // Check canister-stopped first (highest priority)
+  if (isCanisterStoppedError(error)) {
+    return 'canister-stopped';
+  }
   
-  return authPatterns.some(pattern => message.includes(pattern));
+  // Check authorization errors
+  if (message.includes('Unauthorized') || 
+      message.includes('Access denied') ||
+      message.includes('permission')) {
+    return 'authorization';
+  }
+  
+  // Default to generic
+  return 'generic';
+}
+
+/**
+ * Get user-facing error message (sanitized, no technical details)
+ */
+export function getUserFacingMessage(error: unknown): string {
+  const category = categorizeError(error);
+  
+  switch (category) {
+    case 'canister-stopped':
+      return 'The service is temporarily unavailable. Please try again in a few moments.';
+    case 'authorization':
+      return 'Could not load data. Please log in again and retry.';
+    default:
+      return 'Could not load data. Please try again.';
+  }
 }

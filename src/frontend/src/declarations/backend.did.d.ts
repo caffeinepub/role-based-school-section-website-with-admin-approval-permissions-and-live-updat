@@ -64,6 +64,12 @@ export interface RoutinePeriod {
   'teacher' : string,
   'periodNumber' : bigint,
 }
+export interface SectionLocks {
+  'homework' : boolean,
+  'notices' : boolean,
+  'routine' : boolean,
+  'classTime' : boolean,
+}
 export interface Student {
   'principal' : Principal,
   'profile' : ProfileResponse,
@@ -118,11 +124,13 @@ export interface _SERVICE {
   'getAllRoutines' : ActorMethod<[], Array<ClassRoutine>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getItemLocksBySection' : ActorMethod<[string], Array<[bigint, boolean]>>,
+  'getSectionLocks' : ActorMethod<[], SectionLocks>,
   'getStudentsList' : ActorMethod<[], Array<Student>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isCallerApproved' : ActorMethod<[], boolean>,
-  'isContentLocked' : ActorMethod<[string, [] | [bigint]], boolean>,
+  'isMasterLocked' : ActorMethod<[], boolean>,
   'listApprovals' : ActorMethod<[], Array<UserApprovalInfo>>,
   'promoteToEditor' : ActorMethod<[string], undefined>,
   'rejectStudentApplication' : ActorMethod<[string], undefined>,

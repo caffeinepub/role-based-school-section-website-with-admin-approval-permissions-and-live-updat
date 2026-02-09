@@ -1,18 +1,24 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 21,
+  "projectStateVersion": 35,
   "summary": "Build a modern, mobile-responsive Class 8 (DOLON) school section website (GitHub Pages-deployable) with role selection (Student/Visitor/Admin), application + admin approval + login, visitor/admin shared-password access, admin dashboard with advanced controls (including section/item edit locking and master freeze), role/editor management, and live-updating content (notices/homework/routine/schedule) with clear lock indicators and a premium post-login dashboard UI in a professional blue/white animated theme.",
   "architectural_notes": [
     "Target deployment includes GitHub Pages (static hosting); real-time global sync and authentication/approval workflows will require a shared backend or hosted realtime database/service (not achievable with only local browser storage).",
     "App should behave like a single-page app (smooth transitions without full page reload); role-based UI elements must be conditionally rendered/hidden based on authenticated role/permissions.",
-    "Lock states (master freeze, per-section locks, per-item locks) must be enforced by the same permissions layer as editing (not only UI-disabled) and persisted/shared so all users see consistent lock status."
+    "Lock states (master freeze, per-section locks, per-item locks) must be enforced by the same permissions layer as editing (not only UI-disabled) and persisted/shared so all users see consistent lock status.",
+    "If adding background audio, ensure the music file is properly licensed/royalty-free and consider an on/off toggle + remember preference for user experience and autoplay restrictions."
   ],
   "known_issues": [
     "App currently renders as a blank white page (likely build/runtime error or routing/asset path issue on deployment).",
     "Student application → approval → login flow is not working: applicants can log in but cannot see approval/pending status, and pending approvals/users are not appearing in the Admin Dashboard.",
     "Admin Dashboard shows an authorization/access error (\"I don't have access\") when trying to view student applications and approved users; admin cannot fetch these lists.",
     "Student registration/login is currently blocked (registered students cannot enter/login as Student).",
-    "Admin Dashboard shows an \"I am not admin\" / non-admin access error state that should be removed/fixed for admin users."
+    "Admin Dashboard shows an \"I am not admin\" / non-admin access error state that should be removed/fixed for admin users.",
+    "Admin Dashboard (getAllApplications) fails with server error: IC0508 / Reject code 5 because backend canister b3wdl-saaaa-aaaad-aeinq-cai is stopped (\"does not have a CallContextManager\").",
+    "Background music is not playing (instrumental track / global music player playback issue).",
+    "Admin Dashboard lock controls (section locks / item locks) and Master Lock are malfunctioning or not working as expected.",
+    "In-app assistant floating chat panel/page is not scrollable (chat content cannot be scrolled).",
+    "Regression: Admin Dashboard \"Pending Applications\" list is not showing pending applications again (appears empty/not loading)."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -239,6 +245,190 @@
         "REQ-33"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-detect-and-classify-the-specific-internet-computer-rejection-error-shown-to-admins-when-calling-backend-queries-e-g-reject-code-5-error-code-ic0508-with-text-indicating-the-canister-is-stopped-and-expose-it-as-a-distinct-error-category-in-the-frontend-error-utilities-so-the-ui-can-render-a-targeted-message-instead-of-a-generic-server-failure",
+      "title": "Detect and classify the specific Internet Computer rejection error shown to admins when calling backend queries (e.g., Reject code: 5 / Error code: IC0508 with text indicating the canister is stopped), and expose it as a distinct error category in the frontend error utilities so the UI can render a targeted message instead of a generic server failure.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-dashboard-data-error-ui-pending-applications-and-approved-students-sections-so-that-when-the-error-category-is-canister-stopped-service-unavailable-the-alert-title-and-message-clearly-explain-that-the-server-is-temporarily-unavailable-because-the-backend-canister-is-stopped-and-instruct-the-user-to-try-again-later-and-keep-showing-the-technical-error-details-for-debugging",
+      "title": "Update the Admin Dashboard data error UI (Pending Applications and Approved Students sections) so that when the error category is \"canister stopped / service unavailable\", the alert title and message clearly explain that the server is temporarily unavailable because the backend canister is stopped, and instruct the user to try again later (and keep showing the technical error details for debugging).",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-adjust-react-query-behavior-for-admin-list-queries-that-currently-refetch-every-5-seconds-applications-and-approved-students-so-that-when-the-last-error-is-classified-as-canister-stopped-service-unavailable-the-ui-does-not-aggressively-auto-refetch-on-an-interval-until-the-user-manually-retries-to-avoid-constant-repeated-failing-calls-and-noisy-errors",
+      "title": "Adjust React Query behavior for admin list queries that currently refetch every 5 seconds (applications and approved students) so that when the last error is classified as \"canister stopped / service unavailable\", the UI does not aggressively auto-refetch on an interval until the user manually retries (to avoid constant repeated failing calls and noisy errors).",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-relaxing-instrumental-background-music-track-sound-only-no-voice-to-the-frontend-as-a-static-asset-stored-under-frontend-public-assets-generated-and-playable-in-the-app",
+      "title": "Add a relaxing instrumental background music track (sound only, no voice) to the frontend as a static asset, stored under `frontend/public/assets/generated/` and playable in the app.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-global-background-music-player-ui-that-is-available-across-the-authenticated-app-layout-the-layout-used-for-home-notices-homework-routine-schedule-admin-the-player-must-provide-at-least-play-pause-and-mute-unmute-controls-and-it-must-not-start-audible-playback-without-a-user-interaction",
+      "title": "Implement a global background music player UI that is available across the authenticated app layout (the layout used for /home, /notices, /homework, /routine, /schedule, /admin). The player must provide at least Play/Pause and Mute/Unmute controls, and it must not start audible playback without a user interaction.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-persist-the-user-s-background-music-preferences-at-minimum-muted-state-and-whether-playback-was-enabled-in-localstorage-so-the-setting-survives-refreshes-default-must-be-muted-off-until-the-user-opts-in",
+      "title": "Persist the user’s background music preferences (at minimum: muted state and whether playback was enabled) in `localStorage` so the setting survives refreshes. Default must be muted/off until the user opts in.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-admin-dashboard-lock-status-fetching-so-master-lock-section-locks-notices-homework-routine-classtime-and-item-locks-each-display-their-correct-state-and-do-not-interfere-with-each-other",
+      "title": "Fix Admin Dashboard lock status fetching so Master Lock, Section Locks (notices/homework/routine/classTime), and Item Locks each display their correct state and do not interfere with each other.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-admin-dashboard-lock-mutations-so-toggling-master-section-item-locks-updates-the-ui-consistently-and-immediately-after-success-with-clear-english-error-messages-when-a-toggle-fails",
+      "title": "Fix Admin Dashboard lock mutations so toggling Master/Section/Item locks updates the UI consistently and immediately after success, with clear English error messages when a toggle fails.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-background-music-playback-so-that-when-the-user-presses-play-in-the-global-music-player-the-audio-reliably-starts-playing-subject-to-browser-autoplay-rules-and-the-ui-reflects-whether-playback-succeeded",
+      "title": "Fix background music playback so that when the user presses Play in the global music player, the audio reliably starts playing (subject to browser autoplay rules), and the UI reflects whether playback succeeded.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-in-app-assistant-ui-consisting-of-a-floating-chat-button-and-an-expandable-chat-panel-that-works-in-the-existing-react-spa",
+      "title": "Add an in-app assistant UI consisting of a floating chat button and an expandable chat panel that works in the existing React SPA.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-rule-based-assistant-response-engine-no-external-ai-apis-that-uses-the-current-authenticated-role-admin-student-visitor-to-tailor-help-responses",
+      "title": "Implement a rule-based assistant response engine (no external AI APIs) that uses the current authenticated role (Admin/Student/Visitor) to tailor help responses.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-did-you-mean-suggestions-when-the-assistant-detects-partial-matches-e-g-user-types-rutine-or-home-work-and-allow-one-click-insertion-sending-of-the-suggested-intent",
+      "title": "Add “Did you mean…?” suggestions when the assistant detects partial matches (e.g., user types 'rutine' or 'home work') and allow one-click insertion/sending of the suggested intent.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-connect-the-assistant-to-existing-frontend-data-sources-so-it-can-answer-basic-context-questions-using-already-fetched-data-latest-notices-announcements-homework-today-s-routine-and-class-schedule",
+      "title": "Connect the assistant to existing frontend data sources so it can answer basic context questions using already-fetched data: latest notices/announcements, homework, today’s routine, and class schedule.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-admin-guidance-responses-for-common-admin-tasks-approving-students-managing-editor-permissions-using-master-section-item-locks-and-provide-student-visitor-guidance-responses-for-viewing-content-and-logging-in",
+      "title": "Provide Admin guidance responses for common admin tasks (approving students, managing editor permissions, using master/section/item locks) and provide Student/Visitor guidance responses for viewing content and logging in.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-persist-assistant-ui-preferences-in-localstorage-at-minimum-whether-the-panel-is-open-closed-and-a-short-recent-chat-history-so-the-assistant-state-survives-refresh",
+      "title": "Persist assistant UI preferences in localStorage (at minimum: whether the panel is open/closed and a short recent chat history) so the assistant state survives refresh.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-style-the-assistant-ui-to-match-the-existing-school-friendly-blue-white-theme-and-respect-reduced-motion-preferences-for-any-animations-used-in-the-assistant-panel",
+      "title": "Style the assistant UI to match the existing school-friendly blue/white theme and respect reduced-motion preferences for any animations used in the assistant panel.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-floating-in-app-assistant-chat-panel-scrollable-so-users-can-scroll-through-long-message-histories-on-both-desktop-and-mobile",
+      "title": "Make the floating in-app Assistant chat panel scrollable so users can scroll through long message histories on both desktop and mobile.",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-assistantwidget-implementation-to-use-a-scroll-container-that-reliably-supports-scrolling-and-ref-based-auto-scroll-without-modifying-any-files-under-frontend-src-components-ui",
+      "title": "Update the AssistantWidget implementation to use a scroll container that reliably supports scrolling and ref-based auto-scroll without modifying any files under frontend/src/components/ui.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-admin-authorization-initialization-so-the-admin-dashboard-can-reliably-fetch-and-display-pending-student-applications-when-the-admin-logs-in-via-the-shared-admin-password-without-internet-identity-specifically-ensure-the-backend-actor-calls-initializeaccesscontrolwithsecret-using-the-existing-caffeineadmintoken-url-hash-secret-even-when-identity-is-not-present-so-getallapplications-succeeds-for-admins-and-the-ui-shows-the-real-pending-applications-instead-of-an-empty-state",
+      "title": "Fix admin authorization initialization so the Admin Dashboard can reliably fetch and display pending student applications when the admin logs in via the shared admin password (without Internet Identity). Specifically, ensure the backend actor calls `_initializeAccessControlWithSecret(...)` using the existing `caffeineAdminToken` URL/hash secret even when `identity` is not present, so `getAllApplications()` succeeds for admins and the UI shows the real pending applications instead of an empty state.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-admin-dashboard-pending-applications-loading-empty-error-behavior-so-it-never-silently-appears-empty-when-the-query-fails-when-the-applications-query-errors-the-dashboard-must-show-a-clear-english-error-state-using-the-existing-alert-ui-and-must-not-show-the-no-pending-applications-empty-state-at-the-same-time-also-log-the-underlying-error-to-the-browser-console-for-debugging",
+      "title": "Improve the Admin Dashboard Pending Applications loading/empty/error behavior so it never silently appears empty when the query fails. When the applications query errors, the dashboard must show a clear English error state (using the existing alert UI) and must not show the 'No pending applications' empty state at the same time; also log the underlying error to the browser console for debugging.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-dashboard-error-ui-so-it-no-longer-shows-the-service-temporarily-unavailable-canister-stopped-message-block-and-does-not-display-verbose-technical-error-details-e-g-request-id-reject-code-ic0508-http-details-to-end-users",
+      "title": "Update the Admin Dashboard error UI so it no longer shows the “Service Temporarily Unavailable” / canister-stopped message block and does not display verbose technical error details (e.g., Request ID, Reject code, IC0508, HTTP details) to end users.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-admin-dashboard-user-facing-error-messaging-that-explicitly-mentions-admin-authorization-checks-e-g-titles-like-access-denied-and-messages-like-you-need-to-be-logged-in-as-admin-to-view-this-data-replace-with-neutral-english-error-text-that-does-not-reference-admin-check-logic",
+      "title": "Remove Admin Dashboard user-facing error messaging that explicitly mentions admin authorization checks (e.g., titles like “Access Denied” and messages like “You need to be logged in as Admin to view this data”). Replace with neutral English error text that does not reference admin-check logic.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-gate-admin-only-data-fetching-on-admin-only-ui-surfaces-so-non-admin-users-do-not-trigger-admin-only-backend-queries-e-g-do-not-run-usegetallapplications-on-the-home-page-unless-the-current-session-role-is-admin",
+      "title": "Gate admin-only data fetching on admin-only UI surfaces so non-admin users do not trigger admin-only backend queries (e.g., do not run `useGetAllApplications()` on the Home page unless the current session role is Admin).",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -357,6 +547,32 @@
     {
       "id": "AR-21",
       "summary": "Improve/make the login UI look cooler/more premium (enhanced styling, animations, and overall polish for the login screens)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Add a relaxing background music track (instrumental only, no voice) to the website/app",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Update backend lock APIs (or add new ones) so the frontend can query Master Lock, Section Lock, and Item Lock states independently, without using a combined 'isContentLocked' check for master/section/item state display.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Add an in-app assistant (floating chat button + chat box) with rule-based contextual replies for Student/Visitor/Admin questions, including fallback help, “did you mean” suggestions, and optional connections to notices/homework/routine/schedule plus admin guidance",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Remove/disable the admin-check/authorization error states in the Admin Dashboard and stop showing this type of verbose technical “Service Temporarily Unavailable / canister stopped (IC0508 Reject code 5)” error details to the user.",
       "reqIds": [],
       "status": "pending"
     }

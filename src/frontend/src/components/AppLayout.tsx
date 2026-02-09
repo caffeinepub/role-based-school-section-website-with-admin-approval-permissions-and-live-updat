@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Home, Bell, BookOpen, Calendar, Clock, Shield, LogOut, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SiCoffeescript } from 'react-icons/si';
+import { BackgroundMusicPlayer } from '../music/BackgroundMusicPlayer';
+import AssistantWidget from './assistant/AssistantWidget';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -103,6 +105,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <main className="min-h-[calc(100vh-180px)]">
         {children}
       </main>
+
+      <BackgroundMusicPlayer />
+      <AssistantWidget />
 
       <footer className="bg-white border-t mt-12">
         <div className="container mx-auto px-4 py-6 text-center text-sm text-gray-600">

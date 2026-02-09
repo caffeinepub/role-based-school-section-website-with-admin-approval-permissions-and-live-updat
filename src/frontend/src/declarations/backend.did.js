@@ -74,6 +74,12 @@ export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'role' : Role,
 });
+export const SectionLocks = IDL.Record({
+  'homework' : IDL.Bool,
+  'notices' : IDL.Bool,
+  'routine' : IDL.Bool,
+  'classTime' : IDL.Bool,
+});
 export const ProfileResponse = IDL.Record({
   'username' : IDL.Text,
   'name' : IDL.Text,
@@ -131,6 +137,12 @@ export const idlService = IDL.Service({
   'getAllRoutines' : IDL.Func([], [IDL.Vec(ClassRoutine)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getItemLocksBySection' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(IDL.Tuple(IDL.Nat, IDL.Bool))],
+      ['query'],
+    ),
+  'getSectionLocks' : IDL.Func([], [SectionLocks], ['query']),
   'getStudentsList' : IDL.Func([], [IDL.Vec(Student)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
@@ -139,11 +151,7 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isCallerApproved' : IDL.Func([], [IDL.Bool], ['query']),
-  'isContentLocked' : IDL.Func(
-      [IDL.Text, IDL.Opt(IDL.Nat)],
-      [IDL.Bool],
-      ['query'],
-    ),
+  'isMasterLocked' : IDL.Func([], [IDL.Bool], ['query']),
   'listApprovals' : IDL.Func([], [IDL.Vec(UserApprovalInfo)], ['query']),
   'promoteToEditor' : IDL.Func([IDL.Text], [], []),
   'rejectStudentApplication' : IDL.Func([IDL.Text], [], []),
@@ -242,6 +250,12 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'role' : Role,
   });
+  const SectionLocks = IDL.Record({
+    'homework' : IDL.Bool,
+    'notices' : IDL.Bool,
+    'routine' : IDL.Bool,
+    'classTime' : IDL.Bool,
+  });
   const ProfileResponse = IDL.Record({
     'username' : IDL.Text,
     'name' : IDL.Text,
@@ -303,6 +317,12 @@ export const idlFactory = ({ IDL }) => {
     'getAllRoutines' : IDL.Func([], [IDL.Vec(ClassRoutine)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getItemLocksBySection' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(IDL.Tuple(IDL.Nat, IDL.Bool))],
+        ['query'],
+      ),
+    'getSectionLocks' : IDL.Func([], [SectionLocks], ['query']),
     'getStudentsList' : IDL.Func([], [IDL.Vec(Student)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
@@ -311,11 +331,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isCallerApproved' : IDL.Func([], [IDL.Bool], ['query']),
-    'isContentLocked' : IDL.Func(
-        [IDL.Text, IDL.Opt(IDL.Nat)],
-        [IDL.Bool],
-        ['query'],
-      ),
+    'isMasterLocked' : IDL.Func([], [IDL.Bool], ['query']),
     'listApprovals' : IDL.Func([], [IDL.Vec(UserApprovalInfo)], ['query']),
     'promoteToEditor' : IDL.Func([IDL.Text], [], []),
     'rejectStudentApplication' : IDL.Func([IDL.Text], [], []),

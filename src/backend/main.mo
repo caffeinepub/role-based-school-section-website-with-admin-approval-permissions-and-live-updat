@@ -24,20 +24,24 @@ actor {
     #admin;
   };
 
+  public type SectionLocks = {
+    notices : Bool;
+    homework : Bool;
+    routine : Bool;
+    classTime : Bool;
+  };
+
+  public type ItemLockCategories = {
+    notices : Map.Map<Nat, Bool>;
+    homework : Map.Map<Nat, Bool>;
+    routine : Map.Map<Nat, Bool>;
+    classTime : Map.Map<Nat, Bool>;
+  };
+
   public type LockState = {
     master : Bool;
-    sections : {
-      notices : Bool;
-      homework : Bool;
-      routine : Bool;
-      classTime : Bool;
-    };
-    itemLocks : {
-      notices : Map.Map<Nat, Bool>;
-      homework : Map.Map<Nat, Bool>;
-      routine : Map.Map<Nat, Bool>;
-      classTime : Map.Map<Nat, Bool>;
-    };
+    sections : SectionLocks;
+    itemLocks : ItemLockCategories;
   };
 
   public type UserProfile = {
@@ -234,38 +238,6 @@ actor {
     };
   };
 
-  public query ({ caller }) func isContentLocked(section : Text, itemId : ?Nat) : async Bool {
-    // Anyone can check lock status (including guests)
-    // Master lock check
-    if (lockState.master) { return true; };
-
-    // Section lock check
-    let sectionLocked = switch (section) {
-      case ("notices") { lockState.sections.notices };
-      case ("homework") { lockState.sections.homework };
-      case ("routine") { lockState.sections.routine };
-      case ("classTime") { lockState.sections.classTime };
-      case (_) { Runtime.trap("Invalid section") };
-    };
-
-    if (sectionLocked) { return true };
-
-    // Item lock check
-    switch (itemId) {
-      case (null) { false };
-      case (?id) {
-        switch (section) {
-          case ("notices") { lockState.itemLocks.notices.get(id) == ?true };
-          case ("homework") { lockState.itemLocks.homework.get(id) == ?true };
-          case ("routine") { lockState.itemLocks.routine.get(id) == ?true };
-          case ("classTime") { lockState.itemLocks.classTime.get(id) == ?true };
-          case (_) { Runtime.trap("Invalid section") };
-        };
-      };
-    };
-  };
-
-  // Lock Management Functions - Admin only
   public shared ({ caller }) func setMasterLock(state : Bool) : async () {
     requireAdmin(caller);
     lockState := {
@@ -273,6 +245,11 @@ actor {
       sections = lockState.sections;
       itemLocks = lockState.itemLocks;
     };
+  };
+
+  public query ({ caller }) func isMasterLocked() : async Bool {
+    requireAdmin(caller);
+    lockState.master;
   };
 
   public shared ({ caller }) func setSectionLock(section : Text, state : Bool) : async () {
@@ -317,6 +294,11 @@ actor {
       };
       itemLocks = lockState.itemLocks;
     };
+  };
+
+  public query ({ caller }) func getSectionLocks() : async SectionLocks {
+    requireAdmin(caller);
+    lockState.sections;
   };
 
   public shared ({ caller }) func setItemLock(section : Text, itemId : Nat, state : Bool) : async () {
@@ -396,6 +378,18 @@ actor {
       newMap.remove(itemId);
     };
     newMap;
+  };
+
+  public query ({ caller }) func getItemLocksBySection(section : Text) : async [(Nat, Bool)] {
+    requireAdmin(caller);
+    let sectionItemLocks = switch (section) {
+      case ("notices") { lockState.itemLocks.notices };
+      case ("homework") { lockState.itemLocks.homework };
+      case ("routine") { lockState.itemLocks.routine };
+      case ("classTime") { lockState.itemLocks.classTime };
+      case (_) { Runtime.trap("Invalid section") };
+    };
+    sectionItemLocks.toArray();
   };
 
   // User Profile Functions (required by instructions)

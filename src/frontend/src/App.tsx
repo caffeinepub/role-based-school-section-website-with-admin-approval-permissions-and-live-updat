@@ -1,7 +1,9 @@
-import { createRouter, RouterProvider, createRoute, createRootRoute, Outlet, redirect, ErrorComponent } from '@tanstack/react-router';
+import { RouterProvider, createRouter, createRoute, createRootRoute, redirect, Outlet } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './auth/AuthContext';
-import RuntimeErrorBoundary from './components/RuntimeErrorBoundary';
-import RuntimeErrorFallback from './components/RuntimeErrorFallback';
+import { Toaster } from '@/components/ui/sonner';
+import { BackgroundMusicProvider } from './music/BackgroundMusicProvider';
+
 import RoleSelectPage from './pages/RoleSelectPage';
 import VisitorLoginPage from './pages/VisitorLoginPage';
 import AdminLoginPage from './pages/AdminLoginPage';
@@ -9,31 +11,45 @@ import StudentApplyPage from './pages/StudentApplyPage';
 import StudentLoginPage from './pages/StudentLoginPage';
 import PendingApprovalPage from './pages/PendingApprovalPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
-import HomePage from './pages/HomePage';
 import NoticesPage from './pages/NoticesPage';
 import HomeworkPage from './pages/HomeworkPage';
 import ClassRoutinePage from './pages/ClassRoutinePage';
 import ClassTimeSchedulePage from './pages/ClassTimeSchedulePage';
+import HomePage from './pages/HomePage';
 import AppLayout from './components/AppLayout';
+import RuntimeErrorBoundary from './components/RuntimeErrorBoundary';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchInterval: 5000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function RootComponent() {
   const { sessionRole } = useAuth();
+  const isAuthenticated = sessionRole !== 'unauthenticated';
   
-  // If authenticated, show app layout with navigation
-  if (sessionRole && sessionRole !== 'pending' && sessionRole !== 'unauthenticated') {
-    return <AppLayout><Outlet /></AppLayout>;
-  }
-  
-  // Otherwise show page without layout
-  return <Outlet />;
+  return (
+    <RuntimeErrorBoundary>
+      {isAuthenticated ? (
+        <BackgroundMusicProvider>
+          <AppLayout>
+            <Outlet />
+          </AppLayout>
+        </BackgroundMusicProvider>
+      ) : (
+        <Outlet />
+      )}
+    </RuntimeErrorBoundary>
+  );
 }
 
 const rootRoute = createRootRoute({
   component: RootComponent,
-  errorComponent: ({ error }) => {
-    console.error('Router error:', error);
-    return <RuntimeErrorFallback error={error as Error} />;
-  }
 });
 
 const indexRoute = createRoute({
@@ -41,12 +57,42 @@ const indexRoute = createRoute({
   path: '/',
   component: RoleSelectPage,
   beforeLoad: ({ context }) => {
-    const auth = context as { sessionRole?: string };
-    // Redirect authenticated users to home
-    if (auth.sessionRole && auth.sessionRole !== 'pending' && auth.sessionRole !== 'unauthenticated') {
+    const auth = (context as any).auth;
+    const isAuthenticated = auth?.sessionRole && auth.sessionRole !== 'unauthenticated';
+    if (isAuthenticated) {
       throw redirect({ to: '/home' });
     }
-  }
+  },
+});
+
+const visitorLoginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/visitor-login',
+  component: VisitorLoginPage,
+});
+
+const adminLoginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin-login',
+  component: AdminLoginPage,
+});
+
+const studentApplyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/student-apply',
+  component: StudentApplyPage,
+});
+
+const studentLoginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/student-login',
+  component: StudentLoginPage,
+});
+
+const pendingApprovalRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/pending-approval',
+  component: PendingApprovalPage,
 });
 
 const homeRoute = createRoute({
@@ -54,71 +100,12 @@ const homeRoute = createRoute({
   path: '/home',
   component: HomePage,
   beforeLoad: ({ context }) => {
-    const auth = context as { sessionRole?: string };
-    if (!auth.sessionRole || auth.sessionRole === 'pending' || auth.sessionRole === 'unauthenticated') {
+    const auth = (context as any).auth;
+    const isAuthenticated = auth?.sessionRole && auth.sessionRole !== 'unauthenticated';
+    if (!isAuthenticated) {
       throw redirect({ to: '/' });
     }
-  }
-});
-
-const visitorLoginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/visitor-login',
-  component: VisitorLoginPage
-});
-
-const adminLoginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/admin-login',
-  component: AdminLoginPage
-});
-
-const studentApplyRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/student-apply',
-  component: StudentApplyPage
-});
-
-const studentLoginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/student-login',
-  component: StudentLoginPage
-});
-
-const pendingRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/pending',
-  component: PendingApprovalPage,
-  beforeLoad: ({ context }) => {
-    const auth = context as { sessionRole?: string };
-    if (auth.sessionRole !== 'pending') {
-      throw redirect({ to: '/' });
-    }
-  }
-});
-
-const pendingApprovalRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/pending-approval',
-  component: PendingApprovalPage,
-  beforeLoad: ({ context }) => {
-    const auth = context as { sessionRole?: string };
-    if (auth.sessionRole !== 'pending') {
-      throw redirect({ to: '/' });
-    }
-  }
-});
-
-const adminDashboardRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/admin',
-  component: AdminDashboardPage,
-  beforeLoad: ({ context }) => {
-    const auth = context as { sessionRole?: string };
-    if (auth.sessionRole !== 'admin') {
-      throw redirect({ to: '/' });
-    }
-  }
+  },
 });
 
 const noticesRoute = createRoute({
@@ -126,11 +113,12 @@ const noticesRoute = createRoute({
   path: '/notices',
   component: NoticesPage,
   beforeLoad: ({ context }) => {
-    const auth = context as { sessionRole?: string };
-    if (!auth.sessionRole || auth.sessionRole === 'pending' || auth.sessionRole === 'unauthenticated') {
+    const auth = (context as any).auth;
+    const isAuthenticated = auth?.sessionRole && auth.sessionRole !== 'unauthenticated';
+    if (!isAuthenticated) {
       throw redirect({ to: '/' });
     }
-  }
+  },
 });
 
 const homeworkRoute = createRoute({
@@ -138,11 +126,12 @@ const homeworkRoute = createRoute({
   path: '/homework',
   component: HomeworkPage,
   beforeLoad: ({ context }) => {
-    const auth = context as { sessionRole?: string };
-    if (!auth.sessionRole || auth.sessionRole === 'pending' || auth.sessionRole === 'unauthenticated') {
+    const auth = (context as any).auth;
+    const isAuthenticated = auth?.sessionRole && auth.sessionRole !== 'unauthenticated';
+    if (!isAuthenticated) {
       throw redirect({ to: '/' });
     }
-  }
+  },
 });
 
 const routineRoute = createRoute({
@@ -150,11 +139,12 @@ const routineRoute = createRoute({
   path: '/routine',
   component: ClassRoutinePage,
   beforeLoad: ({ context }) => {
-    const auth = context as { sessionRole?: string };
-    if (!auth.sessionRole || auth.sessionRole === 'pending' || auth.sessionRole === 'unauthenticated') {
+    const auth = (context as any).auth;
+    const isAuthenticated = auth?.sessionRole && auth.sessionRole !== 'unauthenticated';
+    if (!isAuthenticated) {
       throw redirect({ to: '/' });
     }
-  }
+  },
 });
 
 const scheduleRoute = createRoute({
@@ -162,38 +152,48 @@ const scheduleRoute = createRoute({
   path: '/schedule',
   component: ClassTimeSchedulePage,
   beforeLoad: ({ context }) => {
-    const auth = context as { sessionRole?: string };
-    if (!auth.sessionRole || auth.sessionRole === 'pending' || auth.sessionRole === 'unauthenticated') {
+    const auth = (context as any).auth;
+    const isAuthenticated = auth?.sessionRole && auth.sessionRole !== 'unauthenticated';
+    if (!isAuthenticated) {
       throw redirect({ to: '/' });
     }
-  }
+  },
+});
+
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin',
+  component: AdminDashboardPage,
+  beforeLoad: ({ context }) => {
+    const auth = (context as any).auth;
+    const isAuthenticated = auth?.sessionRole && auth.sessionRole !== 'unauthenticated';
+    if (!isAuthenticated) {
+      throw redirect({ to: '/' });
+    }
+    if (!auth?.isAdmin) {
+      throw redirect({ to: '/home' });
+    }
+  },
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  homeRoute,
   visitorLoginRoute,
   adminLoginRoute,
   studentApplyRoute,
   studentLoginRoute,
-  pendingRoute,
   pendingApprovalRoute,
-  adminDashboardRoute,
+  homeRoute,
   noticesRoute,
   homeworkRoute,
   routineRoute,
-  scheduleRoute
+  scheduleRoute,
+  adminRoute,
 ]);
 
-const router = createRouter({ 
+const router = createRouter({
   routeTree,
-  context: {
-    sessionRole: undefined
-  },
-  defaultErrorComponent: ({ error }) => {
-    console.error('Default router error:', error);
-    return <RuntimeErrorFallback error={error as Error} />;
-  }
+  context: { auth: undefined },
 });
 
 declare module '@tanstack/react-router' {
@@ -202,18 +202,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
-function AppWithAuth() {
-  const { sessionRole } = useAuth();
-  
-  return <RouterProvider router={router} context={{ sessionRole }} />;
+function AppContent() {
+  const auth = useAuth();
+
+  return <RouterProvider router={router} context={{ auth }} />;
 }
 
 export default function App() {
   return (
-    <RuntimeErrorBoundary>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppWithAuth />
+        <AppContent />
+        <Toaster />
       </AuthProvider>
-    </RuntimeErrorBoundary>
+    </QueryClientProvider>
   );
 }

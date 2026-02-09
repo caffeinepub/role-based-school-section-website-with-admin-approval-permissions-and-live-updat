@@ -40,19 +40,19 @@
         --chart-2: 0.65 0.15 210;
         --chart-3: 0.7 0.12 190;
         --chart-4: 0.6 0.2 270;
-        --chart-5: 0.5 0.15 230;
+        --chart-5: 0.75 0.1 170;
     }
 
     .dark {
-        --background: 0.15 0.01 240;
+        --background: 0.15 0.02 240;
         --foreground: 0.95 0.01 240;
-        --card: 0.2 0.02 240;
+        --card: 0.18 0.02 240;
         --card-foreground: 0.95 0.01 240;
         --popover: 0.18 0.02 240;
         --popover-foreground: 0.95 0.01 240;
         
-        --primary: 0.65 0.18 250;
-        --primary-foreground: 0.15 0.01 240;
+        --primary: 0.6 0.18 250;
+        --primary-foreground: 0.98 0 0;
         
         --secondary: 0.25 0.03 240;
         --secondary-foreground: 0.95 0.01 240;
@@ -60,233 +60,140 @@
         --muted: 0.25 0.03 240;
         --muted-foreground: 0.65 0.02 240;
         
-        --accent: 0.35 0.05 230;
+        --accent: 0.3 0.05 230;
         --accent-foreground: 0.95 0.01 240;
         
-        --destructive: 0.6 0.22 25;
-        --destructive-foreground: 0.15 0.01 240;
+        --destructive: 0.5 0.22 25;
+        --destructive-foreground: 0.98 0 0;
         
-        --border: 0.3 0.02 240;
-        --input: 0.3 0.02 240;
-        --ring: 0.65 0.18 250;
+        --border: 0.25 0.03 240;
+        --input: 0.25 0.03 240;
+        --ring: 0.6 0.18 250;
         
-        --chart-1: 0.65 0.18 250;
-        --chart-2: 0.7 0.15 210;
-        --chart-3: 0.75 0.12 190;
+        --chart-1: 0.6 0.18 250;
+        --chart-2: 0.65 0.15 210;
+        --chart-3: 0.7 0.12 190;
         --chart-4: 0.6 0.2 270;
-        --chart-5: 0.55 0.15 230;
-    }
-
-    * {
-        @apply border-border;
-    }
-    
-    body {
-        @apply bg-background text-foreground;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        --chart-5: 0.75 0.1 170;
     }
 }
 
-@layer utilities {
-    /* Auth screen animations */
-    .auth-content-enter {
-        animation: authContentEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+@layer base {
+    * {
+        @apply border-border;
     }
-
-    .role-card-enter {
-        animation: roleCardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    body {
+        @apply bg-background text-foreground;
     }
+}
 
-    @keyframes authContentEnter {
-        from {
-            opacity: 0;
-            transform: translateY(24px) scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
+/* Premium auth screen animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-
-    @keyframes roleCardEnter {
-        from {
-            opacity: 0;
-            transform: translateY(20px) scale(0.9);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
+}
 
-    /* Decorative background blobs */
-    .auth-blob {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(80px);
-        opacity: 0.15;
-        animation: blobFloat 20s ease-in-out infinite;
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
     }
-
-    .auth-blob-1 {
-        width: 500px;
-        height: 500px;
-        background: linear-gradient(135deg, oklch(0.65 0.20 250), oklch(0.70 0.18 230));
-        top: -10%;
-        left: -10%;
-        animation-delay: 0s;
+    50% {
+        transform: translateY(-20px);
     }
+}
 
-    .auth-blob-2 {
-        width: 400px;
-        height: 400px;
-        background: linear-gradient(135deg, oklch(0.70 0.15 210), oklch(0.75 0.12 190));
-        bottom: -5%;
-        right: -5%;
-        animation-delay: 7s;
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 0.6;
     }
-
-    .auth-blob-3 {
-        width: 350px;
-        height: 350px;
-        background: linear-gradient(135deg, oklch(0.60 0.18 260), oklch(0.65 0.20 240));
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        animation-delay: 14s;
+    50% {
+        opacity: 0.8;
     }
+}
 
-    @keyframes blobFloat {
-        0%, 100% {
-            transform: translate(0, 0) scale(1);
-        }
-        33% {
-            transform: translate(30px, -30px) scale(1.1);
-        }
-        66% {
-            transform: translate(-20px, 20px) scale(0.9);
-        }
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 4s ease-in-out infinite;
+}
+
+/* Role card hover effects */
+.role-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.role-card:hover {
+    transform: translateY(-8px);
+}
+
+/* Decorative blob animations */
+.blob {
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    animation: blob-morph 8s ease-in-out infinite;
+}
+
+@keyframes blob-morph {
+    0%, 100% {
+        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
     }
+    25% {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+    50% {
+        border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    }
+    75% {
+        border-radius: 60% 40% 50% 60% / 30% 60% 70% 40%;
+    }
+}
 
-    /* Existing animations */
-    .animate-in {
-        animation-fill-mode: both;
+/* Shine text effect */
+.shine-text {
+    background: linear-gradient(90deg, #2563eb 0%, #0ea5e9 50%, #2563eb 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shine 3s linear infinite;
+}
+
+@keyframes shine {
+    to {
+        background-position: 200% center;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
     
-    .fade-in {
-        animation: fadeIn 0.5s ease-in;
-    }
-    
-    .slide-in-from-bottom-4 {
-        animation: slideInFromBottom 0.5s ease-out;
-    }
-
-    .slide-in-from-top-1 {
-        animation: slideInFromTop 0.3s ease-out;
-    }
-
-    .zoom-in {
-        animation: zoomIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideInFromBottom {
-        from {
-            transform: translateY(1rem);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideInFromTop {
-        from {
-            transform: translateY(-0.25rem);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes zoomIn {
-        from {
-            transform: scale(0.8);
-            opacity: 0;
-        }
-        to {
-            transform: scale(1);
-            opacity: 1;
-        }
-    }
-
-    /* Polished shine animation for footer credit */
+    .animate-fade-in-up,
+    .animate-float,
+    .animate-pulse-slow,
+    .blob,
     .shine-text {
-        position: relative;
-        display: inline-block;
-        background: linear-gradient(
-            90deg,
-            oklch(0.50 0.20 250) 0%,
-            oklch(0.50 0.20 250) 25%,
-            oklch(0.90 0.25 220) 40%,
-            oklch(0.98 0.15 200) 50%,
-            oklch(0.90 0.25 220) 60%,
-            oklch(0.50 0.20 250) 75%,
-            oklch(0.50 0.20 250) 100%
-        );
-        background-size: 250% 100%;
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: shine 3s ease-in-out infinite;
-        font-weight: 600;
-        letter-spacing: 0.01em;
+        animation: none !important;
     }
-
-    @keyframes shine {
-        0% {
-            background-position: -250% center;
-        }
-        100% {
-            background-position: 250% center;
-        }
-    }
-
-    /* Respect reduced motion preferences */
-    @media (prefers-reduced-motion: reduce) {
-        .auth-content-enter,
-        .role-card-enter,
-        .auth-blob {
-            animation: none;
-        }
-
-        .auth-blob {
-            opacity: 0.08;
-        }
-
-        .shine-text {
-            animation: none;
-            background: linear-gradient(
-                90deg,
-                oklch(0.55 0.20 250) 0%,
-                oklch(0.65 0.22 240) 50%,
-                oklch(0.55 0.20 250) 100%
-            );
-            background-size: 100% 100%;
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    
+    .role-card:hover {
+        transform: none;
     }
 }

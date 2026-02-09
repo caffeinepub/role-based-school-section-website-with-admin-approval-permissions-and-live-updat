@@ -1,57 +1,44 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { Principal } from '@dfinity/principal';
-import type { 
-  StudentApplication, 
-  Announcement, 
-  Homework, 
-  ClassRoutine, 
-  ClassTime,
-  RoutineDay,
-  StudentLoginStatus,
-  Student
-} from '../backend';
+import { StudentApplication, Announcement, Homework, ClassRoutine, RoutineDay, ClassTime, Student, StudentLoginStatus } from '../backend';
+import { Principal } from '@icp-sdk/core/principal';
+import { isCanisterStoppedError } from '../utils/adminErrors';
 
-// Student Login
-export function useStudentLogin() {
-  const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async ({ username, password }: { username: string; password: string }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.tryStudentLogin(username, password);
-    }
-  });
+// Helper to determine refetch interval based on error state
+function getRefetchInterval(error: unknown): number | false {
+  // If there's a canister-stopped error, stop polling
+  if (error && isCanisterStoppedError(error)) {
+    return false;
+  }
+  // Otherwise, poll every 5 seconds
+  return 5000;
 }
 
 // Student Applications
-export function useSubmitApplication() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (app: StudentApplication) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.submitApplication(app);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['applications'] });
-    }
-  });
-}
-
-export function useGetAllApplications() {
+export function useGetAllApplications(options?: { enabled?: boolean }) {
   const { actor, isFetching } = useActor();
 
-  return useQuery<StudentApplication[]>({
+  const query = useQuery<StudentApplication[]>({
     queryKey: ['applications'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) return [];
       return actor.getAllApplications();
     },
-    enabled: !!actor && !isFetching,
-    refetchInterval: 5000,
-    retry: 1
+    enabled: options?.enabled !== false && !!actor && !isFetching,
+    refetchInterval: (query) => getRefetchInterval(query.state.error),
+  });
+
+  return query;
+}
+
+export function useSubmitApplication() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async (application: StudentApplication) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.submitApplication(application);
+    },
   });
 }
 
@@ -62,16 +49,16 @@ export function useApproveApplication() {
   return useMutation({
     mutationFn: async (username: string) => {
       if (!actor) throw new Error('Actor not available');
-      // Use anonymous principal - backend will assign proper principal during approval
-      // The backend's approveStudentApplication expects a principal parameter but
-      // it's used for access control assignment, not for username-to-principal mapping
-      const anonymousPrincipal = Principal.anonymous();
-      return actor.approveStudentApplication(username, anonymousPrincipal);
+      // Generate a random principal for the student
+      const randomBytes = new Uint8Array(29);
+      crypto.getRandomValues(randomBytes);
+      const studentPrincipal = Principal.fromUint8Array(randomBytes);
+      return actor.approveStudentApplication(username, studentPrincipal);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
       queryClient.invalidateQueries({ queryKey: ['approvedStudents'] });
-    }
+    },
   });
 }
 
@@ -86,8 +73,37 @@ export function useRejectApplication() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
-    }
+    },
   });
+}
+
+// Student Login
+export function useStudentLogin() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async ({ username, password }: { username: string; password: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.tryStudentLogin(username, password);
+    },
+  });
+}
+
+// Approved Students
+export function useGetApprovedStudents(options?: { enabled?: boolean }) {
+  const { actor, isFetching } = useActor();
+
+  const query = useQuery<Student[]>({
+    queryKey: ['approvedStudents'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getStudentsList();
+    },
+    enabled: options?.enabled !== false && !!actor && !isFetching,
+    refetchInterval: (query) => getRefetchInterval(query.state.error),
+  });
+
+  return query;
 }
 
 export function usePromoteToEditor() {
@@ -101,7 +117,7 @@ export function usePromoteToEditor() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['approvedStudents'] });
-    }
+    },
   });
 }
 
@@ -116,23 +132,7 @@ export function useDemoteToStudent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['approvedStudents'] });
-    }
-  });
-}
-
-// Approved Students List
-export function useGetApprovedStudents() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Student[]>({
-    queryKey: ['approvedStudents'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getStudentsList();
     },
-    enabled: !!actor && !isFetching,
-    refetchInterval: 5000,
-    retry: 1
   });
 }
 
@@ -147,7 +147,7 @@ export function useGetAnnouncements() {
       return actor.getAllAnnouncements();
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 5000
+    refetchInterval: 5000,
   });
 }
 
@@ -162,7 +162,7 @@ export function useAddAnnouncement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
-    }
+    },
   });
 }
 
@@ -177,7 +177,7 @@ export function useUpdateAnnouncement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
-    }
+    },
   });
 }
 
@@ -192,7 +192,7 @@ export function useDeleteAnnouncement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
-    }
+    },
   });
 }
 
@@ -207,7 +207,7 @@ export function useGetHomework() {
       return actor.getAllHomeworks();
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 5000
+    refetchInterval: 5000,
   });
 }
 
@@ -216,13 +216,13 @@ export function useAddHomework() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { title: string; content: string; dueDate: string; subject: string; teacher: string }) => {
+    mutationFn: async ({ title, content, dueDate, subject, teacher }: { title: string; content: string; dueDate: string; subject: string; teacher: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addHomework(data.title, data.content, data.dueDate, data.subject, data.teacher);
+      return actor.addHomework(title, content, dueDate, subject, teacher);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homework'] });
-    }
+    },
   });
 }
 
@@ -231,13 +231,13 @@ export function useUpdateHomework() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { id: bigint; title: string; content: string; dueDate: string; subject: string; teacher: string }) => {
+    mutationFn: async ({ id, title, content, dueDate, subject, teacher }: { id: bigint; title: string; content: string; dueDate: string; subject: string; teacher: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateHomework(data.id, data.title, data.content, data.dueDate, data.subject, data.teacher);
+      return actor.updateHomework(id, title, content, dueDate, subject, teacher);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homework'] });
-    }
+    },
   });
 }
 
@@ -252,7 +252,7 @@ export function useDeleteHomework() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homework'] });
-    }
+    },
   });
 }
 
@@ -267,7 +267,7 @@ export function useGetRoutines() {
       return actor.getAllRoutines();
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 5000
+    refetchInterval: 5000,
   });
 }
 
@@ -282,7 +282,7 @@ export function useAddRoutine() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routines'] });
-    }
+    },
   });
 }
 
@@ -297,7 +297,7 @@ export function useUpdateRoutine() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routines'] });
-    }
+    },
   });
 }
 
@@ -312,7 +312,7 @@ export function useDeleteRoutine() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routines'] });
-    }
+    },
   });
 }
 
@@ -327,7 +327,7 @@ export function useGetClassTimes() {
       return actor.getAllClassTimes();
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 5000
+    refetchInterval: 5000,
   });
 }
 
@@ -336,13 +336,13 @@ export function useAddClassTime() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { weekDay: string; startTime: string; endTime: string; subject: string; teacher: string }) => {
+    mutationFn: async ({ weekDay, startTime, endTime, subject, teacher }: { weekDay: string; startTime: string; endTime: string; subject: string; teacher: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addClassTime(data.weekDay, data.startTime, data.endTime, data.subject, data.teacher);
+      return actor.addClassTime(weekDay, startTime, endTime, subject, teacher);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classTimes'] });
-    }
+    },
   });
 }
 
@@ -351,13 +351,13 @@ export function useUpdateClassTime() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { id: bigint; weekDay: string; startTime: string; endTime: string; subject: string; teacher: string }) => {
+    mutationFn: async ({ id, weekDay, startTime, endTime, subject, teacher }: { id: bigint; weekDay: string; startTime: string; endTime: string; subject: string; teacher: string }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateClassTime(data.id, data.weekDay, data.startTime, data.endTime, data.subject, data.teacher);
+      return actor.updateClassTime(id, weekDay, startTime, endTime, subject, teacher);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classTimes'] });
-    }
+    },
   });
 }
 
@@ -372,6 +372,6 @@ export function useDeleteClassTime() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['classTimes'] });
-    }
+    },
   });
 }

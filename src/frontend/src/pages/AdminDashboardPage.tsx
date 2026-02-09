@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useGetAllApplications, useApproveApplication, useRejectApplication, usePromoteToEditor, useDemoteToStudent, useGetApprovedStudents, useGetAnnouncements, useGetHomework, useGetRoutines, useGetClassTimes } from '../hooks/useQueries';
-import { useSetMasterLock, useSetSectionLock, useSetItemLock, useGetMasterLock, useGetSectionLock, useGetItemLock } from '../hooks/useLocks';
+import { useSetMasterLock, useSetSectionLock, useSetItemLock, useGetMasterLock, useGetSectionLocks, useGetItemLocksBySection } from '../hooks/useLocks';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,7 +12,7 @@ import { CheckCircle, XCircle, UserCog, User, Lock, Unlock, Shield, AlertCircle,
 import { toast } from 'sonner';
 import LockIndicator from '../components/LockIndicator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getErrorMessage, isAuthorizationError } from '../utils/adminErrors';
+import { getUserFacingMessage } from '../utils/adminErrors';
 
 export default function AdminDashboardPage() {
   const { 
@@ -39,15 +39,30 @@ export default function AdminDashboardPage() {
   const promoteMutation = usePromoteToEditor();
   const demoteMutation = useDemoteToStudent();
 
+  // Lock state queries - independent queries for each lock level
   const { data: masterLocked = false } = useGetMasterLock();
-  const { data: noticesLocked = false } = useGetSectionLock('notices');
-  const { data: homeworkLocked = false } = useGetSectionLock('homework');
-  const { data: routineLocked = false } = useGetSectionLock('routine');
-  const { data: classTimeLocked = false } = useGetSectionLock('classTime');
+  const { data: sectionLocks } = useGetSectionLocks();
+  const { data: noticesItemLocks = [] } = useGetItemLocksBySection('notices');
+  const { data: homeworkItemLocks = [] } = useGetItemLocksBySection('homework');
+  const { data: routineItemLocks = [] } = useGetItemLocksBySection('routine');
+  const { data: classTimeItemLocks = [] } = useGetItemLocksBySection('classTime');
 
   const setMasterLockMutation = useSetMasterLock();
   const setSectionLockMutation = useSetSectionLock();
   const setItemLockMutation = useSetItemLock();
+
+  // Log errors to console for debugging
+  useEffect(() => {
+    if (applicationsError) {
+      console.error('Pending Applications load failure:', applicationsError);
+    }
+  }, [applicationsError]);
+
+  useEffect(() => {
+    if (studentsError) {
+      console.error('Approved Students load failure:', studentsError);
+    }
+  }, [studentsError]);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -64,9 +79,8 @@ export default function AdminDashboardPage() {
       await approveMutation.mutateAsync(username);
       toast.success(`Approved ${username}`);
     } catch (error: any) {
-      const errorMsg = getErrorMessage(error);
-      console.error('Approve error:', errorMsg);
-      toast.error(`Failed to approve: ${errorMsg}`);
+      console.error('Approve error:', error);
+      toast.error('Failed to approve. Please try again.');
     }
   };
 
@@ -75,8 +89,8 @@ export default function AdminDashboardPage() {
       await rejectMutation.mutateAsync(username);
       toast.success(`Rejected ${username}`);
     } catch (error: any) {
-      const errorMsg = getErrorMessage(error);
-      toast.error(`Failed to reject: ${errorMsg}`);
+      console.error('Reject error:', error);
+      toast.error('Failed to reject. Please try again.');
     }
   };
 
@@ -85,8 +99,8 @@ export default function AdminDashboardPage() {
       await promoteMutation.mutateAsync(username);
       toast.success(`Promoted ${username} to editor`);
     } catch (error: any) {
-      const errorMsg = getErrorMessage(error);
-      toast.error(`Failed to promote: ${errorMsg}`);
+      console.error('Promote error:', error);
+      toast.error('Failed to promote. Please try again.');
     }
   };
 
@@ -95,8 +109,8 @@ export default function AdminDashboardPage() {
       await demoteMutation.mutateAsync(username);
       toast.success(`Demoted ${username} to student`);
     } catch (error: any) {
-      const errorMsg = getErrorMessage(error);
-      toast.error(`Failed to demote: ${errorMsg}`);
+      console.error('Demote error:', error);
+      toast.error('Failed to demote. Please try again.');
     }
   };
 
@@ -105,8 +119,8 @@ export default function AdminDashboardPage() {
       await setMasterLockMutation.mutateAsync(checked);
       toast.success(checked ? 'Master lock enabled' : 'Master lock disabled');
     } catch (error: any) {
-      const errorMsg = getErrorMessage(error);
-      toast.error(`Failed to toggle master lock: ${errorMsg}`);
+      console.error('Master lock toggle error:', error);
+      toast.error('Failed to toggle master lock. Please try again.');
     }
   };
 
@@ -115,8 +129,8 @@ export default function AdminDashboardPage() {
       await setSectionLockMutation.mutateAsync({ section, state: checked });
       toast.success(`${section} section ${checked ? 'locked' : 'unlocked'}`);
     } catch (error: any) {
-      const errorMsg = getErrorMessage(error);
-      toast.error(`Failed to toggle ${section} lock: ${errorMsg}`);
+      console.error(`Section lock toggle error (${section}):`, error);
+      toast.error(`Failed to toggle ${section} lock. Please try again.`);
     }
   };
 
@@ -125,8 +139,8 @@ export default function AdminDashboardPage() {
       await setItemLockMutation.mutateAsync({ section, itemId, state: !currentState });
       toast.success(`Item ${!currentState ? 'locked' : 'unlocked'}`);
     } catch (error: any) {
-      const errorMsg = getErrorMessage(error);
-      toast.error(`Failed to toggle item lock: ${errorMsg}`);
+      console.error('Item lock toggle error:', error);
+      toast.error('Failed to toggle item lock. Please try again.');
     }
   };
 
@@ -143,23 +157,17 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const renderErrorAlert = (error: unknown, title: string, refetch?: () => void) => {
-    const errorMsg = getErrorMessage(error);
-    const isAuthError = isAuthorizationError(error);
+  const renderErrorAlert = (error: unknown, refetch?: () => void) => {
+    const userMessage = getUserFacingMessage(error);
     
     return (
       <Alert variant="destructive" className="mb-4">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle className="font-semibold">
-          {isAuthError ? 'Access Denied' : 'Error Loading Data'}
+          Error Loading Data
         </AlertTitle>
         <AlertDescription className="space-y-2">
-          <p>
-            {isAuthError 
-              ? 'You need to be logged in as Admin to view this data.' 
-              : 'Could not load data from the server.'}
-          </p>
-          <p className="text-sm opacity-90">Error: {errorMsg}</p>
+          <p>{userMessage}</p>
           {refetch && (
             <Button 
               variant="outline" 
@@ -174,6 +182,27 @@ export default function AdminDashboardPage() {
         </AlertDescription>
       </Alert>
     );
+  };
+
+  // Helper to check if an item is locked
+  const isItemLocked = (section: string, itemId: bigint): boolean => {
+    let itemLocks: Array<[bigint, boolean]> = [];
+    switch (section) {
+      case 'notices':
+        itemLocks = noticesItemLocks;
+        break;
+      case 'homework':
+        itemLocks = homeworkItemLocks;
+        break;
+      case 'routine':
+        itemLocks = routineItemLocks;
+        break;
+      case 'classTime':
+        itemLocks = classTimeItemLocks;
+        break;
+    }
+    const lockEntry = itemLocks.find(([id]) => id === itemId);
+    return lockEntry ? lockEntry[1] : false;
   };
 
   return (
@@ -213,13 +242,13 @@ export default function AdminDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-6">
-            {applicationsError && renderErrorAlert(applicationsError, 'Applications', refetchApplications)}
-            
-            {applicationsLoading ? (
+            {applicationsError ? (
+              renderErrorAlert(applicationsError, refetchApplications)
+            ) : applicationsLoading ? (
               <div className="text-center py-8 text-gray-500">Loading applications...</div>
-            ) : applications.length === 0 && !applicationsError ? (
+            ) : applications.length === 0 ? (
               <div className="text-center py-8 text-gray-500">No pending applications</div>
-            ) : !applicationsError && (
+            ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -291,13 +320,13 @@ export default function AdminDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-6">
-            {studentsError && renderErrorAlert(studentsError, 'Students', refetchStudents)}
-            
-            {studentsLoading ? (
+            {studentsError ? (
+              renderErrorAlert(studentsError, refetchStudents)
+            ) : studentsLoading ? (
               <div className="text-center py-8 text-gray-500">Loading students...</div>
-            ) : approvedStudents.length === 0 && !studentsError ? (
+            ) : approvedStudents.length === 0 ? (
               <div className="text-center py-8 text-gray-500">No approved students yet</div>
-            ) : !studentsError && (
+            ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -355,21 +384,23 @@ export default function AdminDashboardPage() {
               <Lock className="w-6 h-6 text-purple-600" />
               <div>
                 <CardTitle className="text-2xl">Content Lock Controls</CardTitle>
-                <CardDescription>Control editing permissions for different sections</CardDescription>
+                <CardDescription>Manage editing permissions for different sections</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="pt-6 space-y-6">
             {/* Master Lock */}
-            <div className="p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+            <div className="p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg border-2 border-red-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Shield className="w-5 h-5 text-red-600" />
+                  <Shield className="w-6 h-6 text-red-600" />
                   <div>
-                    <Label htmlFor="master-lock" className="text-base font-semibold text-gray-900">
+                    <Label htmlFor="master-lock" className="text-lg font-semibold text-gray-900">
                       Master Lock
                     </Label>
-                    <p className="text-sm text-gray-600">Locks all content editing across the entire application</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      When enabled, all content editing is disabled for everyone except admins
+                    </p>
                   </div>
                 </div>
                 <Switch
@@ -386,109 +417,170 @@ export default function AdminDashboardPage() {
             {/* Section Locks */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Section Locks</h3>
-              
-              <div className="grid gap-4">
-                {[
-                  { id: 'notices', label: 'Notices', locked: noticesLocked },
-                  { id: 'homework', label: 'Homework', locked: homeworkLocked },
-                  { id: 'routine', label: 'Class Routine', locked: routineLocked },
-                  { id: 'classTime', label: 'Class Time Schedule', locked: classTimeLocked }
-                ].map((section) => (
-                  <div key={section.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                    <div className="flex items-center gap-3">
-                      <LockIndicator isLocked={section.locked} />
-                      <Label htmlFor={`${section.id}-lock`} className="font-medium">
-                        {section.label}
-                      </Label>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Notices Section */}
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="notices-lock" className="font-medium">Notices</Label>
                     <Switch
-                      id={`${section.id}-lock`}
-                      checked={section.locked}
-                      onCheckedChange={(checked) => handleSectionLockToggle(section.id, checked)}
-                      disabled={setSectionLockMutation.isPending || masterLocked}
+                      id="notices-lock"
+                      checked={sectionLocks?.notices || false}
+                      onCheckedChange={(checked) => handleSectionLockToggle('notices', checked)}
+                      disabled={setSectionLockMutation.isPending}
                     />
                   </div>
-                ))}
+                  <LockIndicator isLocked={sectionLocks?.notices || false} />
+                </div>
+
+                {/* Homework Section */}
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="homework-lock" className="font-medium">Homework</Label>
+                    <Switch
+                      id="homework-lock"
+                      checked={sectionLocks?.homework || false}
+                      onCheckedChange={(checked) => handleSectionLockToggle('homework', checked)}
+                      disabled={setSectionLockMutation.isPending}
+                    />
+                  </div>
+                  <LockIndicator isLocked={sectionLocks?.homework || false} />
+                </div>
+
+                {/* Routine Section */}
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="routine-lock" className="font-medium">Class Routine</Label>
+                    <Switch
+                      id="routine-lock"
+                      checked={sectionLocks?.routine || false}
+                      onCheckedChange={(checked) => handleSectionLockToggle('routine', checked)}
+                      disabled={setSectionLockMutation.isPending}
+                    />
+                  </div>
+                  <LockIndicator isLocked={sectionLocks?.routine || false} />
+                </div>
+
+                {/* Class Time Section */}
+                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label htmlFor="classTime-lock" className="font-medium">Class Time Schedule</Label>
+                    <Switch
+                      id="classTime-lock"
+                      checked={sectionLocks?.classTime || false}
+                      onCheckedChange={(checked) => handleSectionLockToggle('classTime', checked)}
+                      disabled={setSectionLockMutation.isPending}
+                    />
+                  </div>
+                  <LockIndicator isLocked={sectionLocks?.classTime || false} />
+                </div>
               </div>
             </div>
 
             <Separator />
 
-            {/* Item Locks */}
+            {/* Item-Level Locks */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Individual Item Locks</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Item-Level Locks</h3>
               
-              {/* Notices */}
+              {/* Notices Items */}
               {announcements.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-medium text-gray-700">Notices</h4>
                   <div className="space-y-2">
-                    {announcements.map((item) => (
-                      <ItemLockControl
-                        key={item.id.toString()}
-                        section="notices"
-                        itemId={item.id}
-                        title={item.title}
-                        onToggle={handleItemLockToggle}
-                        disabled={setItemLockMutation.isPending || masterLocked || noticesLocked}
-                      />
+                    {announcements.map((notice) => (
+                      <div key={notice.id.toString()} className="flex items-center justify-between p-3 bg-white rounded border">
+                        <span className="text-sm">{notice.title}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleItemLockToggle('notices', notice.id, isItemLocked('notices', notice.id))}
+                          disabled={setItemLockMutation.isPending}
+                        >
+                          {isItemLocked('notices', notice.id) ? (
+                            <><Unlock className="w-3 h-3 mr-1" />Unlock</>
+                          ) : (
+                            <><Lock className="w-3 h-3 mr-1" />Lock</>
+                          )}
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Homework */}
+              {/* Homework Items */}
               {homework.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-medium text-gray-700">Homework</h4>
                   <div className="space-y-2">
-                    {homework.map((item) => (
-                      <ItemLockControl
-                        key={item.id.toString()}
-                        section="homework"
-                        itemId={item.id}
-                        title={item.title}
-                        onToggle={handleItemLockToggle}
-                        disabled={setItemLockMutation.isPending || masterLocked || homeworkLocked}
-                      />
+                    {homework.map((hw) => (
+                      <div key={hw.id.toString()} className="flex items-center justify-between p-3 bg-white rounded border">
+                        <span className="text-sm">{hw.title}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleItemLockToggle('homework', hw.id, isItemLocked('homework', hw.id))}
+                          disabled={setItemLockMutation.isPending}
+                        >
+                          {isItemLocked('homework', hw.id) ? (
+                            <><Unlock className="w-3 h-3 mr-1" />Unlock</>
+                          ) : (
+                            <><Lock className="w-3 h-3 mr-1" />Lock</>
+                          )}
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Routines */}
+              {/* Routine Items */}
               {routines.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-medium text-gray-700">Class Routines</h4>
                   <div className="space-y-2">
-                    {routines.map((item) => (
-                      <ItemLockControl
-                        key={item.id.toString()}
-                        section="routine"
-                        itemId={item.id}
-                        title={`Routine #${item.id}`}
-                        onToggle={handleItemLockToggle}
-                        disabled={setItemLockMutation.isPending || masterLocked || routineLocked}
-                      />
+                    {routines.map((routine) => (
+                      <div key={routine.id.toString()} className="flex items-center justify-between p-3 bg-white rounded border">
+                        <span className="text-sm">Routine #{routine.id.toString()}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleItemLockToggle('routine', routine.id, isItemLocked('routine', routine.id))}
+                          disabled={setItemLockMutation.isPending}
+                        >
+                          {isItemLocked('routine', routine.id) ? (
+                            <><Unlock className="w-3 h-3 mr-1" />Unlock</>
+                          ) : (
+                            <><Lock className="w-3 h-3 mr-1" />Lock</>
+                          )}
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Class Times */}
+              {/* Class Time Items */}
               {classTimes.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="font-medium text-gray-700">Class Times</h4>
                   <div className="space-y-2">
-                    {classTimes.map((item) => (
-                      <ItemLockControl
-                        key={item.id.toString()}
-                        section="classTime"
-                        itemId={item.id}
-                        title={`${item.weekDay} - ${item.subject}`}
-                        onToggle={handleItemLockToggle}
-                        disabled={setItemLockMutation.isPending || masterLocked || classTimeLocked}
-                      />
+                    {classTimes.map((ct) => (
+                      <div key={ct.id.toString()} className="flex items-center justify-between p-3 bg-white rounded border">
+                        <span className="text-sm">{ct.weekDay} - {ct.subject}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleItemLockToggle('classTime', ct.id, isItemLocked('classTime', ct.id))}
+                          disabled={setItemLockMutation.isPending}
+                        >
+                          {isItemLocked('classTime', ct.id) ? (
+                            <><Unlock className="w-3 h-3 mr-1" />Unlock</>
+                          ) : (
+                            <><Lock className="w-3 h-3 mr-1" />Lock</>
+                          )}
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -497,36 +589,6 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
-}
-
-function ItemLockControl({
-  section,
-  itemId,
-  title,
-  onToggle,
-  disabled
-}: {
-  section: string;
-  itemId: bigint;
-  title: string;
-  onToggle: (section: string, itemId: bigint, currentState: boolean) => void;
-  disabled: boolean;
-}) {
-  const { data: locked = false } = useGetItemLock(section, itemId);
-
-  return (
-    <div className="flex items-center justify-between p-2 bg-white rounded border">
-      <div className="flex items-center gap-2">
-        <LockIndicator isLocked={locked} />
-        <span className="text-sm">{title}</span>
-      </div>
-      <Switch
-        checked={locked}
-        onCheckedChange={() => onToggle(section, itemId, locked)}
-        disabled={disabled}
-      />
     </div>
   );
 }

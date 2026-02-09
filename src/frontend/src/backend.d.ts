@@ -51,19 +51,18 @@ export type StudentLoginStatus = {
     __kind__: "invalidCredentials";
     invalidCredentials: null;
 };
+export interface SectionLocks {
+    homework: boolean;
+    notices: boolean;
+    routine: boolean;
+    classTime: boolean;
+}
 export interface RoutinePeriod {
     startTime: string;
     subject: string;
     endTime: string;
     teacher: string;
     periodNumber: bigint;
-}
-export interface Announcement {
-    id: bigint;
-    title: string;
-    content: string;
-    author: Principal;
-    timestamp: Time;
 }
 export interface ClassTime {
     id: bigint;
@@ -73,6 +72,13 @@ export interface ClassTime {
     endTime: string;
     teacher: string;
     author: Principal;
+}
+export interface Announcement {
+    id: bigint;
+    title: string;
+    content: string;
+    author: Principal;
+    timestamp: Time;
 }
 export interface Homework {
     id: bigint;
@@ -127,11 +133,13 @@ export interface backendInterface {
     getAllRoutines(): Promise<Array<ClassRoutine>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getItemLocksBySection(section: string): Promise<Array<[bigint, boolean]>>;
+    getSectionLocks(): Promise<SectionLocks>;
     getStudentsList(): Promise<Array<Student>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     isCallerApproved(): Promise<boolean>;
-    isContentLocked(section: string, itemId: bigint | null): Promise<boolean>;
+    isMasterLocked(): Promise<boolean>;
     listApprovals(): Promise<Array<UserApprovalInfo>>;
     promoteToEditor(username: string): Promise<void>;
     rejectStudentApplication(username: string): Promise<void>;
