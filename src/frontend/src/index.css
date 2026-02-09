@@ -88,6 +88,87 @@
 }
 
 @layer utilities {
+    /* Auth screen animations */
+    .auth-content-enter {
+        animation: authContentEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .role-card-enter {
+        animation: roleCardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes authContentEnter {
+        from {
+            opacity: 0;
+            transform: translateY(24px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes roleCardEnter {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* Decorative background blobs */
+    .auth-blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.15;
+        animation: blobFloat 20s ease-in-out infinite;
+    }
+
+    .auth-blob-1 {
+        width: 500px;
+        height: 500px;
+        background: linear-gradient(135deg, oklch(0.65 0.20 250), oklch(0.70 0.18 230));
+        top: -10%;
+        left: -10%;
+        animation-delay: 0s;
+    }
+
+    .auth-blob-2 {
+        width: 400px;
+        height: 400px;
+        background: linear-gradient(135deg, oklch(0.70 0.15 210), oklch(0.75 0.12 190));
+        bottom: -5%;
+        right: -5%;
+        animation-delay: 7s;
+    }
+
+    .auth-blob-3 {
+        width: 350px;
+        height: 350px;
+        background: linear-gradient(135deg, oklch(0.60 0.18 260), oklch(0.65 0.20 240));
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation-delay: 14s;
+    }
+
+    @keyframes blobFloat {
+        0%, 100% {
+            transform: translate(0, 0) scale(1);
+        }
+        33% {
+            transform: translate(30px, -30px) scale(1.1);
+        }
+        66% {
+            transform: translate(-20px, 20px) scale(0.9);
+        }
+    }
+
+    /* Existing animations */
     .animate-in {
         animation-fill-mode: both;
     }
@@ -98,6 +179,14 @@
     
     .slide-in-from-bottom-4 {
         animation: slideInFromBottom 0.5s ease-out;
+    }
+
+    .slide-in-from-top-1 {
+        animation: slideInFromTop 0.3s ease-out;
+    }
+
+    .zoom-in {
+        animation: zoomIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
     
     @keyframes fadeIn {
@@ -116,6 +205,28 @@
         }
         to {
             transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideInFromTop {
+        from {
+            transform: translateY(-0.25rem);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes zoomIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
             opacity: 1;
         }
     }
@@ -152,8 +263,18 @@
         }
     }
 
-    /* Respect reduced motion preferences - static but still styled */
+    /* Respect reduced motion preferences */
     @media (prefers-reduced-motion: reduce) {
+        .auth-content-enter,
+        .role-card-enter,
+        .auth-blob {
+            animation: none;
+        }
+
+        .auth-blob {
+            opacity: 0.08;
+        }
+
         .shine-text {
             animation: none;
             background: linear-gradient(

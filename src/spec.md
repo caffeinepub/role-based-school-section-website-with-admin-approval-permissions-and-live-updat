@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix admin authorization initialization so admins who log in with the shared password can access Admin Dashboard data/actions without erroneous access-denied errors, and improve Admin Dashboard error messages to distinguish authorization failures from other failures.
+**Goal:** Polish and modernize the UI/UX of all login-related screens across roles to feel more premium and “cool,” while keeping the existing school-friendly blue/white theme and preserving all current functionality.
 
 **Planned changes:**
-- Ensure admin sessions consistently initialize backend access control with the shared admin secret/token so admin-only backend methods (e.g., applications list and students list) succeed after Admin Login.
-- Update frontend actor initialization so `_initializeAccessControlWithSecret(adminToken)` is invoked for admin sessions even when no Internet Identity identity is present (anonymous actor case), using the existing `caffeineAdminToken` URL parameter handling.
-- Improve Admin Dashboard error handling for Pending Applications and Approved Students queries to show “Access denied” only for authorization errors, and otherwise show a “Could not load data” message that includes the underlying error text; log errors to `console.error`.
+- Update the visual styling for Role selection, Visitor login, Admin login, Student login, and Student apply pages with a more polished background (e.g., subtle gradient and soft decorative shapes), improved card depth/borders/glow, and cohesive page layout/typography.
+- Add smoother, subtle micro-animations for initial load and for hover/focus interactions across cards, buttons, and inputs, while respecting reduced-motion preferences.
+- Modernize form inputs and buttons across login/apply pages: consistent spacing, stronger and consistent focus rings, clearer accessible error states (border + helper text), optional leading icons where appropriate, and consistent hover/pressed/disabled/loading states without changing existing loading behavior.
+- Refine Role Selection page presentation: improved role card hierarchy and icon tile styling, with smooth hover/focus states that avoid layout shift and keep navigation paths unchanged.
 
-**User-visible outcome:** After logging in via Admin Login with the correct password, the Admin Dashboard loads Pending Applications and Approved Students (when data exists), admin actions (approve/reject/promote/demote/lock toggles) work, non-admin users remain blocked from admin-only methods, and dashboard errors are clearer and more informative.
+**User-visible outcome:** Login and role selection screens look more modern and premium, with clearer interactive states and smoother (non-distracting) motion, while all existing login/apply flows and routes behave exactly as before on mobile, tablet, and desktop.

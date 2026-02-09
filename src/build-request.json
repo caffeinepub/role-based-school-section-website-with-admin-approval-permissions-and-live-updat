@@ -1,69 +1,74 @@
 {
   "kind": "build_request",
-  "title": "Fix Admin Dashboard access denied for applications and approved users",
-  "priority": "high",
+  "title": "Polish and modernize the login UI across roles",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-24",
-      "text": "Fix admin authorization initialization so that an admin who logs in via the shared admin password can successfully call admin-only backend methods (e.g., `getAllApplications()` and `getStudentsList()`) without receiving an unauthorized/access-denied error.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages-5"
-        ],
-        "quotes": [
-          "it is saying i dont have access to see applications and users"
-        ]
-      },
-      "acceptanceCriteria": [
-        "After logging in on the Admin Login page with the correct password, the Admin Dashboard loads both the Pending Applications table and the Approved Students table (when data exists) instead of showing an access-denied alert.",
-        "Admin-only actions (approve/reject/promote/demote and lock toggles) succeed when executed by a logged-in admin.",
-        "Non-admin roles (visitor/student) still cannot call admin-only backend methods and continue to see appropriate access restrictions."
-      ]
-    },
-    {
-      "id": "REQ-25",
-      "text": "Update frontend actor initialization to ensure `_initializeAccessControlWithSecret(...)` is invoked consistently for admin sessions (including when no Internet Identity identity is present), using the existing `caffeineAdminToken` URL parameter handling in `frontend/src/hooks/useActor.ts`, so that admin backend calls are authorized.",
+      "id": "REQ-27",
+      "text": "Upgrade the visual design of all login-related screens to look more premium and “cool” while keeping the existing school-friendly blue/white base theme: Role selection, Visitor login, Admin login, Student login, and Student apply pages. Improvements should include a more polished background (e.g., subtle gradient + soft decorative shapes), improved card styling (depth, borders, glow), and smoother micro-animations for initial load and hover/focus states.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-5"
+          "msg-6"
         ],
         "quotes": [
-          "it is saying i dont have access to see applications and users"
+          "can you j\\est make login ui more cool"
         ]
       },
       "acceptanceCriteria": [
-        "`frontend/src/hooks/useActor.ts` calls `actor._initializeAccessControlWithSecret(adminToken)` for the created actor even when `identity` is not set (anonymous actor case), without breaking non-admin usage.",
-        "If `caffeineAdminToken` is missing/empty, the app does not crash; admin-only backend calls still fail with an authorization error as expected."
+        "The following pages have noticeably improved styling and motion without changing their core functionality: frontend/src/pages/RoleSelectPage.tsx, VisitorLoginPage.tsx, AdminLoginPage.tsx, StudentLoginPage.tsx, StudentApplyPage.tsx.",
+        "All pages remain mobile-responsive and look good at common breakpoints (mobile, tablet, desktop).",
+        "No user-facing text is changed to non-English; existing copy remains simple English.",
+        "Animations respect reduced-motion preferences (no distracting looping motion when prefers-reduced-motion is enabled)."
       ]
     },
     {
-      "id": "REQ-26",
-      "text": "Improve the Admin Dashboard error handling for the Pending Applications and Approved Students queries so the UI does not always label any error as \"Access Denied\"; instead, display a clear English error state that distinguishes authorization failures from other failures and includes the underlying error message for debugging.",
+      "id": "REQ-28",
+      "text": "Make form inputs and buttons on login/apply pages feel more modern and interactive: consistent spacing, stronger focus rings, clearer error states, optional leading icons where appropriate, and improved button hover/pressed/loading states (including disabled appearance).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-5"
+          "msg-6"
         ],
         "quotes": [
-          "it is saying i dont have access to see applications and users"
+          "make login ui more cool"
         ]
       },
       "acceptanceCriteria": [
-        "If the backend returns an authorization error, the Admin Dashboard shows an alert titled \"Access denied\" with English guidance that only admins can view the section.",
-        "If the backend returns a non-authorization error (network/canister error/unknown), the Admin Dashboard shows an alert titled \"Could not load data\" and displays the error message text in the description.",
-        "The underlying error object is logged to `console.error` for both queries."
+        "Inputs show a clear focus state (ring/border) consistent with the existing Tailwind theme variables.",
+        "Error states are visually distinct (border + helper text), and remain accessible (sufficient contrast).",
+        "Buttons have consistent hover/active/disabled styling across Visitor/Admin/Student login and Student apply pages.",
+        "Existing loading behavior remains correct (e.g., Student login shows spinner when pending; submit buttons disable during pending mutations)."
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "text": "Improve the Role Selection page presentation to feel more premium: refine card layout/typography, enhance the role icon tiles, and add subtle motion/hover effects that feel cohesive with the login pages (without adding new navigation steps or changing the current routes).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "make login ui more cool"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Role cards have enhanced visual hierarchy (title/description balance, spacing) and a cohesive premium style matching the updated login screens.",
+        "Hover/focus states for role cards are smooth and clear, and do not cause layout shift.",
+        "Clicking each role still navigates to the same existing paths (/student-apply, /visitor-login, /admin-login) with SPA behavior."
       ]
     }
   ],
   "constraints": [
-    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and anything under frontend/src/components/ui (compose instead of editing).",
-    "Backend must remain a single Motoko actor with all logic in backend/main.mo; only add backend/migration.mo if a stable-state upgrade is required."
+    "Do not modify any immutable frontend paths listed in SYSTEM_CONTEXT (e.g., frontend/src/main.tsx and frontend/src/hooks/useActor.ts).",
+    "Do not change backend logic, authentication rules, passwords, or routing behavior; this request is UI/UX polish only.",
+    "Keep user-facing text in English."
   ],
   "nonGoals": [
-    "Do not redesign the Admin Dashboard UI beyond what is necessary to fix authorization and improve error messaging.",
-    "Do not add new authentication providers or third-party login systems; continue using the existing shared-password admin flow and the existing backend secret initialization mechanism."
+    "Adding new authentication methods or changing how login works (Internet Identity, tokens, sessions, passwords).",
+    "Changing admin/visitor/student password values or introducing password reset flows.",
+    "Backend changes, schema changes, or new canister methods."
   ],
   "imageRequirements": {
     "required": [],

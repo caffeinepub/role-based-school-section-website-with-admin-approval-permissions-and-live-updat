@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 17,
+  "projectStateVersion": 19,
   "summary": "Build a modern, mobile-responsive Class 8 (DOLON) school section website (GitHub Pages-deployable) with role selection (Student/Visitor/Admin), application + admin approval + login, visitor/admin shared-password access, admin dashboard with advanced controls (including section/item edit locking and master freeze), role/editor management, and live-updating content (notices/homework/routine/schedule) with clear lock indicators and a premium post-login dashboard UI in a professional blue/white animated theme.",
   "architectural_notes": [
     "Target deployment includes GitHub Pages (static hosting); real-time global sync and authentication/approval workflows will require a shared backend or hosted realtime database/service (not achievable with only local browser storage).",
@@ -12,7 +12,7 @@
     "Student application → approval → login flow is not working: applicants can log in but cannot see approval/pending status, and pending approvals/users are not appearing in the Admin Dashboard.",
     "Admin Dashboard shows an authorization/access error (\"I don't have access\") when trying to view student applications and approved users; admin cannot fetch these lists."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-implement-a-first-screen-role-selection-ui-with-three-large-interactive-options-student-visitor-admin-selecting-an-option-routes-the-user-into-the-correct-flow-without-full-page-reload-spa-behavior",
@@ -181,6 +181,30 @@
         "REQ-26"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-upgrade-the-visual-design-of-all-login-related-screens-to-look-more-premium-and-cool-while-keeping-the-existing-school-friendly-blue-white-base-theme-role-selection-visitor-login-admin-login-student-login-and-student-apply-pages-improvements-should-include-a-more-polished-background-e-g-subtle-gradient-soft-decorative-shapes-improved-card-styling-depth-borders-glow-and-smoother-micro-animations-for-initial-load-and-hover-focus-states",
+      "title": "Upgrade the visual design of all login-related screens to look more premium and “cool” while keeping the existing school-friendly blue/white base theme: Role selection, Visitor login, Admin login, Student login, and Student apply pages. Improvements should include a more polished background (e.g., subtle gradient + soft decorative shapes), improved card styling (depth, borders, glow), and smoother micro-animations for initial load and hover/focus states.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-form-inputs-and-buttons-on-login-apply-pages-feel-more-modern-and-interactive-consistent-spacing-stronger-focus-rings-clearer-error-states-optional-leading-icons-where-appropriate-and-improved-button-hover-pressed-loading-states-including-disabled-appearance",
+      "title": "Make form inputs and buttons on login/apply pages feel more modern and interactive: consistent spacing, stronger focus rings, clearer error states, optional leading icons where appropriate, and improved button hover/pressed/loading states (including disabled appearance).",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-role-selection-page-presentation-to-feel-more-premium-refine-card-layout-typography-enhance-the-role-icon-tiles-and-add-subtle-motion-hover-effects-that-feel-cohesive-with-the-login-pages-without-adding-new-navigation-steps-or-changing-the-current-routes",
+      "title": "Improve the Role Selection page presentation to feel more premium: refine card layout/typography, enhance the role icon tiles, and add subtle motion/hover effects that feel cohesive with the login pages (without adding new navigation steps or changing the current routes).",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -294,6 +318,12 @@
       "reqIds": [
         "REQ-25"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Improve/make the login UI look cooler/more premium (enhanced styling, animations, and overall polish for the login screens)",
+      "reqIds": [],
       "status": "pending"
     }
   ],

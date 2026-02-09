@@ -1,62 +1,110 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix admin secret initialization and Admin Dashboard error messaging",
+  "title": "Premium blue/white UI polish for role selection and all login/apply screens",
   "requirements": [
     {
-      "id": "REQ-24",
-      "summary": "Ensure shared-password admin sessions are authorized for admin-only dashboard data/actions while preserving non-admin restrictions.",
+      "id": "REQ-27",
+      "summary": "Upgrade visual design and micro-animations for all login-related screens while keeping the blue/white school theme and preserving existing functionality",
       "acceptanceCriteria": [
-        "After logging in on the Admin Login page with the correct password, the Admin Dashboard loads both the Pending Applications table and the Approved Students table (when data exists) instead of showing an access-denied alert.",
-        "Admin-only actions (approve/reject/promote/demote and lock toggles) succeed when executed by a logged-in admin.",
-        "Non-admin roles (visitor/student) still cannot call admin-only backend methods and continue to see appropriate access restrictions."
+        "The following pages have noticeably improved styling and motion without changing their core functionality: frontend/src/pages/RoleSelectPage.tsx, VisitorLoginPage.tsx, AdminLoginPage.tsx, StudentLoginPage.tsx, StudentApplyPage.tsx.",
+        "All pages remain mobile-responsive and look good at common breakpoints (mobile, tablet, desktop).",
+        "No user-facing text is changed to non-English; existing copy remains simple English.",
+        "Animations respect reduced-motion preferences (no distracting looping motion when prefers-reduced-motion is enabled)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useActor.ts",
-          "operation": "modify",
-          "description": "Update actor creation so admin secret initialization is applied consistently for admin sessions even when using an anonymous actor (no Internet Identity). Ensure the admin secret is only applied when a non-empty caffeineAdminToken is available, so non-admin/visitor/student behavior remains restricted."
-        },
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "After the authorization initialization fix, verify the dashboard queries and existing admin-only actions (approve/reject/promote/demote and lock toggles) correctly use the authorized actor and no longer spuriously show access-denied for valid admin sessions."
-        }
-      ]
-    },
-    {
-      "id": "REQ-25",
-      "summary": "Invoke _initializeAccessControlWithSecret(adminToken) for admin sessions even without an Internet Identity identity, using the existing caffeineAdminToken parameter handling.",
-      "acceptanceCriteria": [
-        "`frontend/src/hooks/useActor.ts` calls `actor._initializeAccessControlWithSecret(adminToken)` for the created actor even when `identity` is not set (anonymous actor case), without breaking non-admin usage.",
-        "If `caffeineAdminToken` is missing/empty, the app does not crash; admin-only backend calls still fail with an authorization error as expected."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useActor.ts",
-          "operation": "modify",
-          "description": "Refactor actor initialization so both authenticated and anonymous actor paths can apply admin initialization when caffeineAdminToken is present. Guard the call so missing/empty tokens do not crash and do not grant admin access."
-        }
-      ]
-    },
-    {
-      "id": "REQ-26",
-      "summary": "Improve Admin Dashboard query error handling to distinguish authorization failures from other failures and show underlying error messages.",
-      "acceptanceCriteria": [
-        "If the backend returns an authorization error, the Admin Dashboard shows an alert titled \"Access denied\" with English guidance that only admins can view the section.",
-        "If the backend returns a non-authorization error (network/canister error/unknown), the Admin Dashboard shows an alert titled \"Could not load data\" and displays the error message text in the description.",
-        "The underlying error object is logged to `console.error` for both queries."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/adminErrors.ts",
+          "path": "frontend/src/components/auth/AuthScreenLayout.tsx",
           "operation": "create",
-          "description": "Add small helpers to normalize errors into a message string and detect likely authorization failures (e.g., by checking error text for \"Unauthorized\"/\"access\"/\"denied\" patterns) to support consistent Admin Dashboard error rendering."
+          "description": "Create a shared auth/page shell that provides a premium blue/white background (subtle gradient + soft decorative shapes), consistent centered container sizing, and motion-safe entrance animations. Use existing shadcn-ui primitives (e.g., Card) where appropriate for structure. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Update Pending Applications and Approved Students sections to (1) log query errors via console.error, (2) show \"Access denied\" only for authorization-like errors with guidance, and (3) show \"Could not load data\" for other errors including the underlying error message text in the alert description."
+          "description": "Add reusable utility classes/keyframes for auth screen polish (e.g., subtle fade/slide, soft glow, decorative shape positioning) and ensure all animations are disabled or simplified under prefers-reduced-motion. Keep the existing theme variables and English copy unchanged."
+        },
+        {
+          "path": "frontend/src/pages/VisitorLoginPage.tsx",
+          "operation": "modify",
+          "description": "Refactor to use AuthScreenLayout for the upgraded background and consistent card presentation; enhance card depth/borders/glow and add motion-safe hover/focus micro-interactions without changing login logic, copy, or navigation. Continue using shadcn-ui Card/Input/Button/Label. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/AdminLoginPage.tsx",
+          "operation": "modify",
+          "description": "Refactor to use AuthScreenLayout; apply premium card styling (depth, refined borders, subtle glow) and cohesive motion-safe animations while preserving admin login logic and existing routes. Continue using shadcn-ui Card/Input/Button/Label. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/StudentLoginPage.tsx",
+          "operation": "modify",
+          "description": "Refactor to use AuthScreenLayout; apply consistent premium card styling and motion-safe micro-animations while keeping existing student login behavior (including spinner and disabled states) and navigation. Continue using shadcn-ui Card/Input/Button/Label. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/StudentApplyPage.tsx",
+          "operation": "modify",
+          "description": "Refactor both the application form and the success state to use AuthScreenLayout and consistent premium card styling; add motion-safe transitions while preserving form submission behavior, pending state, and existing copy. Continue using shadcn-ui Card/Input/Button/Label. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-28",
+      "summary": "Modernize and standardize input and button interactions across login/apply forms (focus, errors, icons, hover/pressed/loading/disabled states)",
+      "acceptanceCriteria": [
+        "Inputs show a clear focus state (ring/border) consistent with the existing Tailwind theme variables.",
+        "Error states are visually distinct (border + helper text), and remain accessible (sufficient contrast).",
+        "Buttons have consistent hover/active/disabled styling across Visitor/Admin/Student login and Student apply pages.",
+        "Existing loading behavior remains correct (e.g., Student login shows spinner when pending; submit buttons disable during pending mutations)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/auth/AuthFormField.tsx",
+          "operation": "create",
+          "description": "Create a reusable form field wrapper to standardize spacing, label + helper/error text, optional leading icon slot, and consistent focus/error styling around shadcn-ui Input. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/AuthPrimaryButton.tsx",
+          "operation": "create",
+          "description": "Create a reusable primary action button wrapper to standardize hover/active/disabled styling and optional loading presentation while delegating behavior to the existing shadcn-ui Button. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/VisitorLoginPage.tsx",
+          "operation": "modify",
+          "description": "Adopt AuthFormField/AuthPrimaryButton to unify focus rings, error presentation, and button interaction states; optionally add a leading icon where appropriate while keeping existing logic (including password visibility toggle) and text unchanged. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/AdminLoginPage.tsx",
+          "operation": "modify",
+          "description": "Adopt AuthFormField/AuthPrimaryButton to unify focus rings, error presentation, and button states; optionally add a leading icon where appropriate without altering admin password validation logic or copy. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/StudentLoginPage.tsx",
+          "operation": "modify",
+          "description": "Adopt AuthFormField/AuthPrimaryButton and ensure pending/login spinner behavior remains correct (button disabled while pending, spinner visible); add clearer focus and error visuals without changing any auth/approval routing logic or copy. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/StudentApplyPage.tsx",
+          "operation": "modify",
+          "description": "Adopt AuthFormField/AuthPrimaryButton to standardize spacing, focus rings, and accessible error visuals (while still using existing toast behavior); ensure submit disabled/loading remains correct and copy unchanged. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "summary": "Improve Role Selection page with premium card layout/typography, enhanced icon tiles, and cohesive hover/focus motion without changing routes",
+      "acceptanceCriteria": [
+        "Role cards have enhanced visual hierarchy (title/description balance, spacing) and a cohesive premium style matching the updated login screens.",
+        "Hover/focus states for role cards are smooth and clear, and do not cause layout shift.",
+        "Clicking each role still navigates to the same existing paths (/student-apply, /visitor-login, /admin-login) with SPA behavior."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/RoleSelectPage.tsx",
+          "operation": "modify",
+          "description": "Update RoleSelectPage to use the same premium background/shell as the login/apply screens (AuthScreenLayout), refine role card typography/spacing, enhance icon tiles, and add smooth motion-safe hover/focus effects that avoid layout shift; preserve existing navigation targets and routes. Continue using shadcn-ui Card for consistent styling. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/AuthScreenLayout.tsx",
+          "operation": "modify",
+          "description": "Ensure the shared auth shell supports the wider Role Selection layout (max width/grid-friendly container) and provides consistent decorative background styling/motion-safe entrance animations to match the login/apply screens. Verify the component's usage instructions before implementing."
         }
       ]
     }

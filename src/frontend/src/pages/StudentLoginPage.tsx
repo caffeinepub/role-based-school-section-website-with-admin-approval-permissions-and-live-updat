@@ -3,11 +3,12 @@ import { useNavigate } from '@tanstack/react-router';
 import { useAuth } from '../auth/AuthContext';
 import { useStudentLogin } from '../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, Lock, GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
+import AuthScreenLayout from '@/components/auth/AuthScreenLayout';
+import AuthFormField from '@/components/auth/AuthFormField';
+import AuthPrimaryButton from '@/components/auth/AuthPrimaryButton';
 
 export default function StudentLoginPage() {
   const [username, setUsername] = useState('');
@@ -52,79 +53,78 @@ export default function StudentLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <Button
-          variant="ghost"
-          onClick={() => navigate({ to: '/' })}
-          className="mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+    <AuthScreenLayout>
+      <Button
+        variant="ghost"
+        onClick={() => navigate({ to: '/' })}
+        className="mb-6 hover:bg-white/60 transition-colors"
+        disabled={loginMutation.isPending}
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back
+      </Button>
 
-        <Card className="shadow-xl border-2">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold text-gray-900">Student Login</CardTitle>
-            <CardDescription className="text-base">
-              Login with your approved credentials
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
-                  disabled={loginMutation.isPending}
-                />
-              </div>
+      <Card className="shadow-2xl border-2 border-blue-200 backdrop-blur-sm bg-white/90 overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700" />
+        
+        <CardHeader className="text-center space-y-4 pt-8 pb-6">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-3 transition-transform duration-300">
+            <GraduationCap className="w-8 h-8 text-white" />
+          </div>
+          <CardTitle className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+            Student Login
+          </CardTitle>
+          <CardDescription className="text-base md:text-lg text-gray-600">
+            Login with your approved credentials
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="pb-8 px-6 md:px-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <AuthFormField
+              id="username"
+              label="Username"
+              value={username}
+              onChange={setUsername}
+              placeholder="Enter your username"
+              disabled={loginMutation.isPending}
+              icon={<User className="w-4 h-4" />}
+            />
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  disabled={loginMutation.isPending}
-                />
-              </div>
+            <AuthFormField
+              id="password"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={setPassword}
+              placeholder="Enter your password"
+              disabled={loginMutation.isPending}
+              icon={<Lock className="w-4 h-4" />}
+            />
 
+            <AuthPrimaryButton
+              type="submit"
+              loading={loginMutation.isPending}
+              disabled={loginMutation.isPending}
+              variant="blue"
+            >
+              Login
+            </AuthPrimaryButton>
+
+            <div className="text-center pt-2">
               <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                type="button"
+                variant="link"
+                onClick={() => navigate({ to: '/student-apply' })}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 disabled={loginMutation.isPending}
               >
-                {loginMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Logging in...
-                  </>
-                ) : (
-                  'Login'
-                )}
+                Don't have an account? Apply here
               </Button>
-
-              <div className="text-center">
-                <Button
-                  type="button"
-                  variant="link"
-                  onClick={() => navigate({ to: '/student-apply' })}
-                  className="text-sm"
-                  disabled={loginMutation.isPending}
-                >
-                  Don't have an account? Apply here
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </AuthScreenLayout>
   );
 }

@@ -1,47 +1,68 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T10:18:31.169Z",
+  "generatedAt": "2026-02-09T10:29:38.258Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 2,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-24",
-        "summary": "Fix admin authorization initialization so that an admin who logs in via the shared admin password can successfully call admin-only backend methods (e.g., `getAllApplications()` and `getStudentsList()`) without receiving an unauthorized/access-denied error.",
+        "id": "REQ-27",
+        "summary": "Upgrade the visual design of all login-related screens to look more premium and “cool” while keeping the existing school-friendly blue/white base theme: Role selection, Visitor login, Admin login, Student login, and Student apply pages. Improvements should include a more polished background (e.g., subtle gradient + soft decorative shapes), improved card styling (depth, borders, glow), and smoother micro-animations for initial load and hover/focus states.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useActor.ts",
-          "frontend/src/pages/AdminDashboardPage.tsx"
+          "frontend/src/components/auth/AuthScreenLayout.tsx",
+          "frontend/src/index.css",
+          "frontend/src/pages/VisitorLoginPage.tsx",
+          "frontend/src/pages/AdminLoginPage.tsx",
+          "frontend/src/pages/StudentLoginPage.tsx",
+          "frontend/src/pages/StudentApplyPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/AdminDashboardPage.tsx"
+          "frontend/src/components/auth/AuthScreenLayout.tsx",
+          "frontend/src/index.css",
+          "frontend/src/pages/VisitorLoginPage.tsx",
+          "frontend/src/pages/AdminLoginPage.tsx",
+          "frontend/src/pages/StudentLoginPage.tsx",
+          "frontend/src/pages/StudentApplyPage.tsx"
         ]
       },
       {
-        "id": "REQ-25",
-        "summary": "Update frontend actor initialization to ensure `_initializeAccessControlWithSecret(...)` is invoked consistently for admin sessions (including when no Internet Identity identity is present), using the existing `caffeineAdminToken` URL parameter handling in `frontend/src/hooks/useActor.ts`, so that admin backend calls are authorized.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/hooks/useActor.ts"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-26",
-        "summary": "Improve the Admin Dashboard error handling for the Pending Applications and Approved Students queries so the UI does not always label any error as \"Access Denied\"; instead, display a clear English error state that distinguishes authorization failures from other failures and includes the underlying error message for debugging.",
+        "id": "REQ-28",
+        "summary": "Make form inputs and buttons on login/apply pages feel more modern and interactive: consistent spacing, stronger focus rings, clearer error states, optional leading icons where appropriate, and improved button hover/pressed/loading states (including disabled appearance).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/adminErrors.ts",
-          "frontend/src/pages/AdminDashboardPage.tsx"
+          "frontend/src/components/auth/AuthFormField.tsx",
+          "frontend/src/components/auth/AuthPrimaryButton.tsx",
+          "frontend/src/pages/VisitorLoginPage.tsx",
+          "frontend/src/pages/AdminLoginPage.tsx",
+          "frontend/src/pages/StudentLoginPage.tsx",
+          "frontend/src/pages/StudentApplyPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/utils/adminErrors.ts",
-          "frontend/src/pages/AdminDashboardPage.tsx"
+          "frontend/src/components/auth/AuthFormField.tsx",
+          "frontend/src/components/auth/AuthPrimaryButton.tsx",
+          "frontend/src/pages/VisitorLoginPage.tsx",
+          "frontend/src/pages/AdminLoginPage.tsx",
+          "frontend/src/pages/StudentLoginPage.tsx",
+          "frontend/src/pages/StudentApplyPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-29",
+        "summary": "Improve the Role Selection page presentation to feel more premium: refine card layout/typography, enhance the role icon tiles, and add subtle motion/hover effects that feel cohesive with the login pages (without adding new navigation steps or changing the current routes).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/RoleSelectPage.tsx",
+          "frontend/src/components/auth/AuthScreenLayout.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/RoleSelectPage.tsx",
+          "frontend/src/components/auth/AuthScreenLayout.tsx"
         ]
       }
     ]
@@ -51,8 +72,15 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/pages/AdminDashboardPage.tsx",
-    "frontend/src/utils/adminErrors.ts",
+    "frontend/src/components/auth/AuthFormField.tsx",
+    "frontend/src/components/auth/AuthPrimaryButton.tsx",
+    "frontend/src/components/auth/AuthScreenLayout.tsx",
+    "frontend/src/index.css",
+    "frontend/src/pages/AdminLoginPage.tsx",
+    "frontend/src/pages/RoleSelectPage.tsx",
+    "frontend/src/pages/StudentApplyPage.tsx",
+    "frontend/src/pages/StudentLoginPage.tsx",
+    "frontend/src/pages/VisitorLoginPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

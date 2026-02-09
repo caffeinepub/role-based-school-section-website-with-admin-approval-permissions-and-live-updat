@@ -3,11 +3,12 @@ import { useNavigate } from '@tanstack/react-router';
 import { useAuth } from '../auth/AuthContext';
 import { useSubmitApplication } from '../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, User, School, Users as UsersIcon, Lock, CheckCircle2, GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
+import AuthScreenLayout from '@/components/auth/AuthScreenLayout';
+import AuthFormField from '@/components/auth/AuthFormField';
+import AuthPrimaryButton from '@/components/auth/AuthPrimaryButton';
 
 export default function StudentApplyPage() {
   const [formData, setFormData] = useState({
@@ -46,127 +47,148 @@ export default function StudentApplyPage() {
 
   if (hasApplied) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl border-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-900">Application Submitted</CardTitle>
+      <AuthScreenLayout>
+        <Card className="shadow-2xl border-2 border-green-200 backdrop-blur-sm bg-white/90 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 via-emerald-500 to-green-600" />
+          
+          <CardHeader className="text-center space-y-4 pt-8 pb-6">
+            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl animate-in zoom-in duration-500">
+              <CheckCircle2 className="w-10 h-10 text-white" />
+            </div>
+            <CardTitle className="text-3xl font-bold text-gray-900">
+              Application Submitted
+            </CardTitle>
           </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <div className="bg-blue-50 p-6 rounded-lg">
-              <p className="text-lg text-gray-800 font-medium">
+          
+          <CardContent className="text-center space-y-6 pb-8 px-6 md:px-8">
+            <div className="bg-gradient-to-br from-blue-50 to-sky-50 p-6 rounded-xl border border-blue-100">
+              <p className="text-lg text-gray-800 font-medium mb-2">
                 Your request is waiting for admin approval.
               </p>
+              <p className="text-sm text-gray-600">
+                You will be able to login once an administrator approves your application.
+              </p>
             </div>
-            <p className="text-sm text-gray-600">
-              You will be able to login once an administrator approves your application.
-            </p>
-            <Button
+            
+            <AuthPrimaryButton
               onClick={() => navigate({ to: '/student-login' })}
-              className="w-full"
+              variant="blue"
             >
               Go to Login
-            </Button>
+            </AuthPrimaryButton>
           </CardContent>
         </Card>
-      </div>
+      </AuthScreenLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <Button
-          variant="ghost"
-          onClick={() => navigate({ to: '/' })}
-          className="mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+    <AuthScreenLayout>
+      <Button
+        variant="ghost"
+        onClick={() => navigate({ to: '/' })}
+        className="mb-6 hover:bg-white/60 transition-colors"
+        disabled={submitMutation.isPending}
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back
+      </Button>
 
-        <Card className="shadow-xl border-2">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold text-gray-900">Student Application</CardTitle>
-            <CardDescription className="text-base">
-              Fill in your details to apply for access
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  placeholder="Enter your full name"
-                />
-              </div>
+      <Card className="shadow-2xl border-2 border-blue-200 backdrop-blur-sm bg-white/90 overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700" />
+        
+        <CardHeader className="text-center space-y-4 pt-8 pb-6">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-3 transition-transform duration-300">
+            <GraduationCap className="w-8 h-8 text-white" />
+          </div>
+          <CardTitle className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+            Student Application
+          </CardTitle>
+          <CardDescription className="text-base md:text-lg text-gray-600">
+            Fill in your details to apply for access
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="pb-8 px-6 md:px-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <AuthFormField
+              id="name"
+              label="Full Name"
+              value={formData.name}
+              onChange={(value) => handleChange('name', value)}
+              placeholder="Enter your full name"
+              disabled={submitMutation.isPending}
+              icon={<User className="w-4 h-4" />}
+            />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="className">Class</Label>
-                  <Input
-                    id="className"
-                    value={formData.className}
-                    onChange={(e) => handleChange('className', e.target.value)}
-                    placeholder="e.g., 10"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="section">Section</Label>
-                  <Input
-                    id="section"
-                    value={formData.section}
-                    onChange={(e) => handleChange('section', e.target.value)}
-                    placeholder="e.g., A"
-                  />
-                </div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AuthFormField
+                id="className"
+                label="Class"
+                value={formData.className}
+                onChange={(value) => handleChange('className', value)}
+                placeholder="e.g., 10"
+                disabled={submitMutation.isPending}
+                icon={<School className="w-4 h-4" />}
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={formData.username}
-                  onChange={(e) => handleChange('username', e.target.value)}
-                  placeholder="Choose a username"
-                />
-              </div>
+              <AuthFormField
+                id="section"
+                label="Section"
+                value={formData.section}
+                onChange={(value) => handleChange('section', value)}
+                placeholder="e.g., A"
+                disabled={submitMutation.isPending}
+                icon={<UsersIcon className="w-4 h-4" />}
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => handleChange('password', e.target.value)}
-                  placeholder="Choose a password"
-                />
-              </div>
+            <AuthFormField
+              id="username"
+              label="Username"
+              value={formData.username}
+              onChange={(value) => handleChange('username', value)}
+              placeholder="Choose a username"
+              disabled={submitMutation.isPending}
+              icon={<User className="w-4 h-4" />}
+            />
 
-              <Button
+            <AuthFormField
+              id="password"
+              label="Password"
+              type="password"
+              value={formData.password}
+              onChange={(value) => handleChange('password', value)}
+              placeholder="Choose a password"
+              disabled={submitMutation.isPending}
+              icon={<Lock className="w-4 h-4" />}
+            />
+
+            <div className="pt-2">
+              <AuthPrimaryButton
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                loading={submitMutation.isPending}
+                disabled={submitMutation.isPending}
+                variant="blue"
+              >
+                Submit Application
+              </AuthPrimaryButton>
+            </div>
+
+            <div className="text-center pt-2">
+              <Button
+                type="button"
+                variant="link"
+                onClick={() => navigate({ to: '/student-login' })}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 disabled={submitMutation.isPending}
               >
-                {submitMutation.isPending ? 'Submitting...' : 'Submit Application'}
+                Already have an account? Login here
               </Button>
-
-              <div className="text-center">
-                <Button
-                  type="button"
-                  variant="link"
-                  onClick={() => navigate({ to: '/student-login' })}
-                  className="text-sm"
-                >
-                  Already have an account? Login here
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </AuthScreenLayout>
   );
 }

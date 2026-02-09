@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useAuth } from '../auth/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { ArrowLeft, Eye, EyeOff, Shield } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Shield, Lock } from 'lucide-react';
+import AuthScreenLayout from '@/components/auth/AuthScreenLayout';
+import AuthFormField from '@/components/auth/AuthFormField';
+import AuthPrimaryButton from '@/components/auth/AuthPrimaryButton';
 
 const ADMIN_PASSWORD = 'dolon.admin';
 
@@ -29,61 +30,59 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <Button
-          variant="ghost"
-          onClick={() => navigate({ to: '/' })}
-          className="mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+    <AuthScreenLayout>
+      <Button
+        variant="ghost"
+        onClick={() => navigate({ to: '/' })}
+        className="mb-6 hover:bg-white/60 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back
+      </Button>
 
-        <Card className="shadow-xl border-2 border-indigo-200">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
-              <Shield className="w-8 h-8 text-white" />
-            </div>
-            <CardTitle className="text-3xl font-bold text-gray-900">Admin Access</CardTitle>
-            <CardDescription className="text-base">
-              Enter the admin password to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="password">Admin Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter admin password"
-                    className={error ? 'border-red-500' : ''}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-              </div>
+      <Card className="shadow-2xl border-2 border-indigo-200 backdrop-blur-sm bg-white/90 overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600" />
+        
+        <CardHeader className="text-center space-y-4 pt-8 pb-6">
+          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl transform hover:rotate-3 transition-transform duration-300">
+            <Shield className="w-10 h-10 text-white" />
+          </div>
+          <CardTitle className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+            Admin Access
+          </CardTitle>
+          <CardDescription className="text-base md:text-lg text-gray-600">
+            Enter the admin password to continue
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="pb-8 px-6 md:px-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <AuthFormField
+              id="password"
+              label="Admin Password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={setPassword}
+              placeholder="Enter admin password"
+              error={error}
+              icon={<Lock className="w-4 h-4" />}
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
+            />
 
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
-              >
-                Login as Admin
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            <AuthPrimaryButton type="submit" variant="indigo">
+              Login as Admin
+            </AuthPrimaryButton>
+          </form>
+        </CardContent>
+      </Card>
+    </AuthScreenLayout>
   );
 }
