@@ -1,170 +1,27 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin lock controls, lock indicators, and post-login Home dashboard for Class 8 (DOLON)",
+  "title": "Add shiny animated footer credit label",
   "requirements": [
     {
-      "id": "REQ-13",
-      "summary": "Add an Admin Lock Control Dashboard section inside the existing /admin page (master, section, and per-item lock toggles).",
+      "id": "REQ-18",
+      "summary": "Add a subtle, school-theme-friendly shine animation to a global footer credit label with exact text \"Made By Sunyad Ahmed Shrabon\", respecting reduced-motion preferences.",
       "acceptanceCriteria": [
-        "On /admin, admins can toggle the master lock on/off and see immediate UI feedback.",
-        "On /admin, admins can lock/unlock each section independently and see current status.",
-        "On /admin, admins can lock/unlock individual items (announcements, homework, routines, class time entries) via a clear list UI with item titles/identifiers and lock toggles.",
-        "All lock/unlock actions call backend mutations and show success/error toasts in English.",
-        "Non-admin users cannot access or see the lock control dashboard (route guard + UI visibility)."
+        "The footer displays the exact text \"Made By Sunyad Ahmed Shrabon\" on all pages that render the shared layout/footer.",
+        "The credit text has a visible but subtle shine animation (e.g., moving highlight) without harming readability.",
+        "The shine animation respects users who prefer reduced motion (when `prefers-reduced-motion: reduce` is set, the animation is disabled or replaced with a non-animated style).",
+        "No user-facing text is added in any language other than English."
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Extend the existing Admin Dashboard UI to include a Lock Control Dashboard section: master lock toggle, per-section toggles for Notices/Homework/Routine/Class Time, and per-item toggles for the latest items in each section. Fetch latest items using existing data hooks and wire lock mutations + English success/error toasts."
-        },
-        {
-          "path": "frontend/src/hooks/useLocks.ts",
-          "operation": "create",
-          "description": "Add React Query hooks for reading lock states and performing lock mutations (master/section/item) using backend lock capabilities, with consistent refetch behavior and shared query keys for cross-page updates."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "If needed for consistency, add or export any shared query key helpers used by the new lock hooks so AdminDashboardPage can invalidate/refetch the correct data after lock toggles (keep existing CRUD hooks unchanged except for shared utilities)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-14",
-      "summary": "Show section/item lock indicators and locked visual states across Notices, Homework, Routine, and Schedule, disabling edit controls when locked for students/editors.",
-      "acceptanceCriteria": [
-        "Each main content page (Notices, Homework, Class Routine, Class Time Schedule) shows a section-level lock indicator near the page header (🔒 when locked, 🔓 when unlocked).",
-        "Each item card/row shows an item-level lock indicator (🔒/🔓) when applicable.",
-        "When a section is locked, the page’s add/edit/delete buttons are disabled for students and editors, and the UI displays a tooltip that reads exactly: “This section is locked by admin.”",
-        "When an individual item is locked, its edit/delete buttons are disabled for students and editors, and the item appears greyed-out (reduced opacity + non-editable affordance).",
-        "Icons and state changes use smooth transitions/animations (e.g., Tailwind transition classes) when toggling lock status."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/LockIndicator.tsx",
-          "operation": "create",
-          "description": "Create a small reusable UI component for rendering 🔒/🔓 with smooth Tailwind transitions and optional label/tooltip support, to be used by pages and item rows/cards."
-        },
-        {
-          "path": "frontend/src/pages/NoticesPage.tsx",
-          "operation": "modify",
-          "description": "Integrate section lock query for the Notices section and item-level lock queries per announcement. Show header lock indicator. Disable Add/Edit/Delete controls for students/editors when locked, add tooltip with exact text “This section is locked by admin.”, and apply greyed-out + non-editable affordance for locked items with smooth transitions."
-        },
-        {
-          "path": "frontend/src/pages/HomeworkPage.tsx",
-          "operation": "modify",
-          "description": "Integrate section lock query for the Homework section and item-level lock queries per homework item. Show header lock indicator. Disable Add/Edit/Delete for students/editors when locked with the exact tooltip text, and apply greyed-out styling + lock indicators on locked items with smooth transitions."
-        },
-        {
-          "path": "frontend/src/pages/ClassRoutinePage.tsx",
-          "operation": "modify",
-          "description": "Integrate section lock query for the Routine section. Show header lock indicator. Disable routine management controls for students/editors when locked with the exact tooltip text; keep view access unchanged and add smooth transition behavior on lock indicator."
-        },
-        {
-          "path": "frontend/src/pages/ClassTimeSchedulePage.tsx",
-          "operation": "modify",
-          "description": "Integrate section lock query for the Class Time/Schedule section and item-level lock queries per class time entry. Show header lock indicator. Disable add/edit/delete controls for students/editors when locked with the exact tooltip text, and grey out locked items with lock icons + smooth transitions."
-        }
-      ]
-    },
-    {
-      "id": "REQ-15",
-      "summary": "Create a premium dashboard-style /home page as the post-login landing page and update routing/navigation to include it.",
-      "acceptanceCriteria": [
-        "A new route (e.g., /home) exists and is accessible only when sessionRole is authenticated (admin/student/visitor).",
-        "After successful login (admin, student, visitor), the app navigates to the new Home page instead of directly to a content page.",
-        "Home page displays: “Welcome to Class 8 (DOLON)” and the current user role (Admin / Student / Visitor) in English.",
-        "Home page displays a latest notices preview (e.g., top 3 most recent announcements) with a link/button to open the full Notices page.",
-        "Home page displays today’s class routine section (based on today’s weekday and the latest routine data; if unavailable, show a friendly empty state in English).",
-        "Home page includes quick-access cards linking to Notices, Homework, and Routine pages.",
-        "Home page is fully mobile responsive and matches the existing blue/white, rounded card, soft shadow design language."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/HomePage.tsx",
-          "operation": "create",
-          "description": "Implement the new premium dashboard-style Home page: welcome header for Class 8 (DOLON), role display (Admin/Student/Visitor), latest notices preview (top 3) with navigation to full Notices, today’s routine preview derived from latest routine data with an English empty state, and responsive quick-access cards linking to Notices/Homework/Routine."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Register the new /home route with an authentication guard (only authenticated sessionRole values). Update the index (/) route behavior to redirect authenticated users to /home so Home becomes the primary post-login landing page."
-        },
         {
           "path": "frontend/src/components/AppLayout.tsx",
           "operation": "modify",
-          "description": "Update app navigation to include a Home link/button (to /home) consistent with the existing layout and styling, ensuring it works on both desktop nav and mobile sheet nav."
+          "description": "Update the shared layout footer to include a dedicated credit label that renders the exact text \"Made By Sunyad Ahmed Shrabon\" on all pages using AppLayout, and apply a custom CSS class for the subtle shine effect (no routing/auth changes)."
         },
         {
-          "path": "frontend/src/pages/StudentLoginPage.tsx",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Change the post-login navigation target from /notices to /home so students land on the new Home page after successful login."
-        },
-        {
-          "path": "frontend/src/pages/VisitorLoginPage.tsx",
-          "operation": "modify",
-          "description": "Change the post-login navigation target from /notices to /home so visitors land on the new Home page after successful login."
-        },
-        {
-          "path": "frontend/src/pages/AdminLoginPage.tsx",
-          "operation": "modify",
-          "description": "Change the post-login navigation target from /admin to /home so admins land on the new Home page after successful login (admin features remain accessible via Admin Dashboard link/cards)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-16",
-      "summary": "Add Admin-only cards on the Home page for pending approvals, lock status overview, and quick edit shortcuts.",
-      "acceptanceCriteria": [
-        "When the user role is Admin, the Home page shows a card with the number of pending student applications and a button linking to the Admin Dashboard applications table.",
-        "When the user role is Admin, the Home page shows a section lock status overview card listing each section (Notices/Homework/Routine/Class Time) with its current lock icon/state.",
-        "When the user role is Admin, the Home page shows quick edit shortcut buttons linking directly to the relevant pages (Notices/Homework/Routine/Schedule) and/or the lock control area in the Admin Dashboard.",
-        "When the user role is not Admin, none of these admin-only cards are visible."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/HomePage.tsx",
-          "operation": "modify",
-          "description": "Add Admin-only dashboard cards: pending student applications count (derived from applications data) with link to /admin, lock status overview for Notices/Homework/Routine/Class Time using lock state queries, and quick edit shortcuts linking to relevant pages and/or the lock control section within /admin. Ensure cards are hidden for non-admin roles."
-        },
-        {
-          "path": "frontend/src/pages/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Add a stable in-page anchor/section id for the Lock Control Dashboard area so Home page 'quick edit' shortcuts can deep-link directly to lock controls within /admin."
-        }
-      ]
-    },
-    {
-      "id": "REQ-17",
-      "summary": "Use React Query to fetch/mutate lock state with periodic refetch + invalidation so lock UI stays current and handles stale UI errors gracefully.",
-      "acceptanceCriteria": [
-        "Frontend has React Query hooks to fetch lock state and to perform lock/unlock mutations (master, section, item).",
-        "After a lock/unlock mutation succeeds, relevant queries are invalidated/refetched so UI indicators update promptly across pages.",
-        "Lock state queries use a periodic refetch interval consistent with existing data hooks (current pattern refetches every ~5000ms).",
-        "If a user attempts an edit while locked (e.g., due to stale UI), the mutation failure is handled gracefully with an English toast/error message derived from the backend error."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useLocks.ts",
-          "operation": "modify",
-          "description": "Ensure lock queries and mutations are implemented via React Query: section-level and item-level lock reads (with ~5000ms refetch interval), and master/section/item lock mutations that invalidate relevant lock queries (and any affected content lists where appropriate) so indicators update across pages."
-        },
-        {
-          "path": "frontend/src/pages/NoticesPage.tsx",
-          "operation": "modify",
-          "description": "Update edit/create/delete flows to gracefully handle backend lock rejections (e.g., stale UI): surface backend error messages via English toasts and ensure UI remains consistent after failures (no stuck dialogs)."
-        },
-        {
-          "path": "frontend/src/pages/HomeworkPage.tsx",
-          "operation": "modify",
-          "description": "Update edit/create/delete flows to gracefully handle backend lock rejections (stale UI) and show English toasts derived from backend errors."
-        },
-        {
-          "path": "frontend/src/pages/ClassTimeSchedulePage.tsx",
-          "operation": "modify",
-          "description": "Update edit/create/delete flows to gracefully handle backend lock rejections (stale UI) and show English toasts derived from backend errors."
+          "description": "Add the custom CSS (Tailwind-compatible) for the footer credit shine effect, including keyframes and a `@media (prefers-reduced-motion: reduce)` override to disable/neutralize the animation while keeping the text readable and consistent with the existing school-friendly theme."
         }
       ]
     }

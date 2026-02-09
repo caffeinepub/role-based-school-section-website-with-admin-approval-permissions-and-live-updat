@@ -1,16 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add admin-controlled locking for Class 8 (DOLON) content (master/section/item), show lock status throughout the UI with enforced edit restrictions, and introduce a new premium post-login Home dashboard for all authenticated users.
+**Goal:** Add a subtle, shiny/animated credit label to the global app footer that matches the existing school-friendly theme.
 
 **Planned changes:**
-- Implement backend lock state storage and admin-only APIs to read/update: master lock, per-section locks (Notices, Homework, Routine, Class Time), and per-item locks for entries in those sections.
-- Enforce locks server-side for all create/update/delete mutations for Notices, Homework, Class Routine, and Class Time; return clear lock-related errors when blocked.
-- Ensure editor permissions remain admin-managed and do not bypass locks (locks take precedence over editor status).
-- Add an Admin Lock Control Dashboard inside the existing `/admin` route with master/section/item lock toggles, showing current status and success/error toasts (English), and restricting visibility/access to admins only.
-- Display section-level and item-level lock indicators (🔒/🔓) across Notices, Homework, Class Routine, and Class Time pages, including greyed-out locked items, disabled edit controls, and the tooltip text: “This section is locked by admin.”
-- Create a new premium dashboard-style Home page (e.g., `/home`) as the primary post-login landing page for all authenticated roles (Admin/Student/Visitor), and update navigation accordingly.
-- On Home, show welcome text + user role, latest notices preview, today’s routine (with friendly empty state), and quick-access cards to Notices/Homework/Routine; add Admin-only cards for pending approvals, lock overview, and quick shortcuts.
-- Integrate lock state fetching/mutations with React Query (including periodic refetch and invalidation) so lock indicators and disabled controls stay current and handle stale-edit errors gracefully with English messaging.
+- Update the shared layout/footer to display the exact text "Made By Sunyad Ahmed Shrabon" on all pages where the footer appears.
+- Style the credit text with a visible but subtle “shine” animation using the existing React + Tailwind CSS approach.
+- Respect `prefers-reduced-motion: reduce` by disabling the animation or replacing it with a non-animated style while keeping the text readable.
 
-**User-visible outcome:** Admins can lock/unlock Class 8 (DOLON) editing globally, per section, or per item from the Admin Dashboard, and everyone sees clear lock indicators with editing controls disabled when locked; after login, all authenticated users land on a new Home dashboard showing key class summaries and quick navigation (with extra admin-only overview cards).
+**User-visible outcome:** Users see a footer credit reading "Made By Sunyad Ahmed Shrabon" on all pages, with a subtle shine effect (or a non-animated equivalent when reduced motion is enabled).

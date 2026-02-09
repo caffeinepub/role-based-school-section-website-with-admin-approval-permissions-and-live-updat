@@ -117,6 +117,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               caffeine.ai
             </a>
           </p>
+          <p className="mt-2">
+            <span className="shine-text font-medium text-blue-700">
+              Made By Sunyad Ahmed Shrabon
+            </span>
+          </p>
         </div>
       </footer>
     </div>

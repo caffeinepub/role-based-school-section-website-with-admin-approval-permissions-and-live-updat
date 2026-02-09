@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
+  "projectStateVersion": 9,
   "summary": "Build a modern, mobile-responsive Class 8 (DOLON) school section website (GitHub Pages-deployable) with role selection (Student/Visitor/Admin), application + admin approval + login, visitor/admin shared-password access, admin dashboard with advanced controls (including section/item edit locking and master freeze), role/editor management, and live-updating content (notices/homework/routine/schedule) with clear lock indicators and a premium post-login dashboard UI in a professional blue/white animated theme.",
   "architectural_notes": [
     "Target deployment includes GitHub Pages (static hosting); real-time global sync and authentication/approval workflows will require a shared backend or hosted realtime database/service (not achievable with only local browser storage).",
@@ -131,6 +131,14 @@
         "REQ-17"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-shiny-animated-credit-label-with-the-exact-text-made-by-sunyad-ahmed-shrabon-to-the-global-app-footer-in-the-shared-layout-and-style-it-with-a-subtle-shine-effect-that-matches-the-existing-school-friendly-theme",
+      "title": "Add a shiny/animated credit label with the exact text \"Made By Sunyad Ahmed Shrabon\" to the global app footer (in the shared layout) and style it with a subtle “shine” effect that matches the existing school-friendly theme.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -214,6 +222,12 @@
       "reqIds": [
         "REQ-12"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Add a shiny/animated credit text label: \"Made By Sunyad Ahmed Shrabon\" (e.g., shine effect in UI/footer)",
+      "reqIds": [],
       "status": "pending"
     }
   ],
