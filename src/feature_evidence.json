@@ -2,15 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-upgrade-the-visual-design-of-all-login-related-screens-to-look-more-premium-and-cool-while-keeping-the-existing-school-friendly-blue-white-base-theme-role-selection-visitor-login-admin-login-student-login-and-student-apply-pages-improvements-should-include-a-more-polished-background-e-g-subtle-gradient-soft-decorative-shapes-improved-card-styling-depth-borders-glow-and-smoother-micro-animations-for-initial-load-and-hover-focus-states",
-      "featureTitle": "Upgrade the visual design of all login-related screens to look more premium and “cool” while keeping the existing school-friendly blue/white base theme: Role selection, Visitor login, Admin login, Student login, and Student apply pages. Improvements should include a more polished background (e.g., subtle gradient + soft decorative shapes), improved card styling (depth, borders, glow), and smoother micro-animations for initial load and hover/focus states.",
+      "featureId": "feature-fix-admin-shared-password-sessions-so-an-admin-user-can-successfully-call-admin-only-backend-methods-e-g-getallapplications-getstudentslist-setmasterlock-setsectionlock-setitemlock-and-the-admin-dashboard-no-longer-shows-an-authorization-error-for-real-admins",
+      "featureTitle": "Fix Admin shared-password sessions so an Admin user can successfully call admin-only backend methods (e.g., getAllApplications, getStudentsList, setMasterLock, setSectionLock, setItemLock) and the Admin Dashboard no longer shows an authorization error for real admins.",
       "files": [
-        "frontend/src/components/auth/AuthScreenLayout.tsx",
-        "frontend/src/index.css",
-        "frontend/src/pages/AdminLoginPage.tsx",
-        "frontend/src/pages/StudentApplyPage.tsx",
-        "frontend/src/pages/StudentLoginPage.tsx",
-        "frontend/src/pages/VisitorLoginPage.tsx"
+        "frontend/src/auth/AuthContext.tsx",
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "frontend/src/pages/AdminLoginPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -22,20 +19,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-27"
+        "REQ-30"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-make-form-inputs-and-buttons-on-login-apply-pages-feel-more-modern-and-interactive-consistent-spacing-stronger-focus-rings-clearer-error-states-optional-leading-icons-where-appropriate-and-improved-button-hover-pressed-loading-states-including-disabled-appearance",
-      "featureTitle": "Make form inputs and buttons on login/apply pages feel more modern and interactive: consistent spacing, stronger focus rings, clearer error states, optional leading icons where appropriate, and improved button hover/pressed/loading states (including disabled appearance).",
+      "featureId": "feature-ensure-student-applications-submitted-from-the-student-apply-page-reliably-appear-in-the-admin-dashboard-pending-applications-list-for-admins",
+      "featureTitle": "Ensure student applications submitted from the Student Apply page reliably appear in the Admin Dashboard Pending Applications list for admins.",
       "files": [
-        "frontend/src/components/auth/AuthFormField.tsx",
-        "frontend/src/components/auth/AuthPrimaryButton.tsx",
-        "frontend/src/pages/AdminLoginPage.tsx",
-        "frontend/src/pages/StudentApplyPage.tsx",
-        "frontend/src/pages/StudentLoginPage.tsx",
-        "frontend/src/pages/VisitorLoginPage.tsx"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "frontend/src/pages/StudentApplyPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -47,16 +41,18 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-28"
+        "REQ-31"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-improve-the-role-selection-page-presentation-to-feel-more-premium-refine-card-layout-typography-enhance-the-role-icon-tiles-and-add-subtle-motion-hover-effects-that-feel-cohesive-with-the-login-pages-without-adding-new-navigation-steps-or-changing-the-current-routes",
-      "featureTitle": "Improve the Role Selection page presentation to feel more premium: refine card layout/typography, enhance the role icon tiles, and add subtle motion/hover effects that feel cohesive with the login pages (without adding new navigation steps or changing the current routes).",
+      "featureId": "feature-fix-the-approval-pipeline-so-approving-a-pending-student-works-end-to-end-approval-action-succeeds-application-disappears-from-pending-student-appears-in-approved-students-and-the-approved-student-can-log-in-remove-any-broken-principal-generation-behavior-used-during-approval-that-can-prevent-approvals-from-completing",
+      "featureTitle": "Fix the approval pipeline so approving a pending student works end-to-end (approval action succeeds, application disappears from pending, student appears in Approved Students, and the approved student can log in). Remove any broken principal-generation behavior used during approval that can prevent approvals from completing.",
       "files": [
-        "frontend/src/components/auth/AuthScreenLayout.tsx",
-        "frontend/src/pages/RoleSelectPage.tsx"
+        "frontend/src/auth/AuthContext.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "frontend/src/pages/StudentLoginPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -68,7 +64,29 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-29"
+        "REQ-32"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-admin-dashboard-error-messaging-so-that-the-dashboard-does-not-show-a-misleading-access-denied-you-do-not-have-permission-state-when-the-real-issue-is-misconfigured-admin-initialization-or-other-non-auth-failures-keep-authorization-protection-but-show-clearer-english-guidance-and-include-the-underlying-error-message-for-debugging",
+      "featureTitle": "Update Admin Dashboard error messaging so that the dashboard does not show a misleading 'Access Denied' / 'You do not have permission' state when the real issue is misconfigured admin initialization or other non-auth failures. Keep authorization protection, but show clearer English guidance and include the underlying error message for debugging.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "frontend/src/utils/adminErrors.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "user-approval@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-33"
       ],
       "confidence": "high"
     }

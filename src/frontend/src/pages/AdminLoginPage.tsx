@@ -7,6 +7,7 @@ import { ArrowLeft, Eye, EyeOff, Shield, Lock } from 'lucide-react';
 import AuthScreenLayout from '@/components/auth/AuthScreenLayout';
 import AuthFormField from '@/components/auth/AuthFormField';
 import AuthPrimaryButton from '@/components/auth/AuthPrimaryButton';
+import { toast } from 'sonner';
 
 const ADMIN_PASSWORD = 'dolon.admin';
 
@@ -23,7 +24,9 @@ export default function AdminLoginPage() {
 
     if (password === ADMIN_PASSWORD) {
       login('admin', 'Admin');
-      navigate({ to: '/home' });
+      toast.success('Logged in as Admin');
+      // Navigate to admin dashboard to see fresh data
+      navigate({ to: '/admin' });
     } else {
       setError('Incorrect admin password');
     }

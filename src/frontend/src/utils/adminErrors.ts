@@ -18,9 +18,21 @@ export function getErrorMessage(error: unknown): string {
       return error.message;
     }
     
+    // Check for nested error messages (common in IC errors)
+    if ('error' in error && typeof error.error === 'object' && error.error !== null) {
+      if ('message' in error.error && typeof error.error.message === 'string') {
+        return error.error.message;
+      }
+    }
+    
     // Try to stringify the error object
     try {
-      return JSON.stringify(error);
+      const stringified = JSON.stringify(error);
+      // If it's just an empty object, return a generic message
+      if (stringified === '{}') {
+        return 'An error occurred';
+      }
+      return stringified;
     } catch {
       return 'An error occurred';
     }
@@ -45,6 +57,8 @@ export function isAuthorizationError(error: unknown): boolean {
     'only admins',
     'only administrators',
     'requires admin',
+    'not admin',
+    'admin only',
   ];
   
   return authPatterns.some(pattern => message.includes(pattern));

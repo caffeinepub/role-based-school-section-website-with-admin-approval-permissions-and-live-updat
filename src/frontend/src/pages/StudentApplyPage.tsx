@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import AuthScreenLayout from '@/components/auth/AuthScreenLayout';
 import AuthFormField from '@/components/auth/AuthFormField';
 import AuthPrimaryButton from '@/components/auth/AuthPrimaryButton';
+import { getErrorMessage } from '../utils/adminErrors';
 
 export default function StudentApplyPage() {
   const [formData, setFormData] = useState({
@@ -37,7 +38,9 @@ export default function StudentApplyPage() {
       setHasApplied(true);
       toast.success('Application submitted successfully!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to submit application');
+      const errorMsg = getErrorMessage(error);
+      console.error('Application submission error:', errorMsg);
+      toast.error(`Failed to submit application: ${errorMsg}`);
     }
   };
 
@@ -65,8 +68,11 @@ export default function StudentApplyPage() {
               <p className="text-lg text-gray-800 font-medium mb-2">
                 Your request is waiting for admin approval.
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 mb-3">
                 You will be able to login once an administrator approves your application.
+              </p>
+              <p className="text-xs text-gray-500">
+                The admin will see your application in their dashboard and can approve it.
               </p>
             </div>
             

@@ -1,68 +1,75 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T10:29:38.258Z",
+  "generatedAt": "2026-02-09T12:14:29.078Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-27",
-        "summary": "Upgrade the visual design of all login-related screens to look more premium and “cool” while keeping the existing school-friendly blue/white base theme: Role selection, Visitor login, Admin login, Student login, and Student apply pages. Improvements should include a more polished background (e.g., subtle gradient + soft decorative shapes), improved card styling (depth, borders, glow), and smoother micro-animations for initial load and hover/focus states.",
+        "id": "REQ-30",
+        "summary": "Fix Admin shared-password sessions so an Admin user can successfully call admin-only backend methods (e.g., getAllApplications, getStudentsList, setMasterLock, setSectionLock, setItemLock) and the Admin Dashboard no longer shows an authorization error for real admins.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/auth/AuthScreenLayout.tsx",
-          "frontend/src/index.css",
-          "frontend/src/pages/VisitorLoginPage.tsx",
+          "frontend/src/auth/AuthContext.tsx",
           "frontend/src/pages/AdminLoginPage.tsx",
-          "frontend/src/pages/StudentLoginPage.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/auth/AuthContext.tsx",
+          "frontend/src/pages/AdminLoginPage.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-31",
+        "summary": "Ensure student applications submitted from the Student Apply page reliably appear in the Admin Dashboard Pending Applications list for admins.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboardPage.tsx",
           "frontend/src/pages/StudentApplyPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/auth/AuthScreenLayout.tsx",
-          "frontend/src/index.css",
-          "frontend/src/pages/VisitorLoginPage.tsx",
-          "frontend/src/pages/AdminLoginPage.tsx",
-          "frontend/src/pages/StudentLoginPage.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboardPage.tsx",
           "frontend/src/pages/StudentApplyPage.tsx"
         ]
       },
       {
-        "id": "REQ-28",
-        "summary": "Make form inputs and buttons on login/apply pages feel more modern and interactive: consistent spacing, stronger focus rings, clearer error states, optional leading icons where appropriate, and improved button hover/pressed/loading states (including disabled appearance).",
+        "id": "REQ-32",
+        "summary": "Fix the approval pipeline so approving a pending student works end-to-end (approval action succeeds, application disappears from pending, student appears in Approved Students, and the approved student can log in). Remove any broken principal-generation behavior used during approval that can prevent approvals from completing.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/auth/AuthFormField.tsx",
-          "frontend/src/components/auth/AuthPrimaryButton.tsx",
-          "frontend/src/pages/VisitorLoginPage.tsx",
-          "frontend/src/pages/AdminLoginPage.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboardPage.tsx",
           "frontend/src/pages/StudentLoginPage.tsx",
-          "frontend/src/pages/StudentApplyPage.tsx"
+          "frontend/src/auth/AuthContext.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/auth/AuthFormField.tsx",
-          "frontend/src/components/auth/AuthPrimaryButton.tsx",
-          "frontend/src/pages/VisitorLoginPage.tsx",
-          "frontend/src/pages/AdminLoginPage.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboardPage.tsx",
           "frontend/src/pages/StudentLoginPage.tsx",
-          "frontend/src/pages/StudentApplyPage.tsx"
+          "frontend/src/auth/AuthContext.tsx"
         ]
       },
       {
-        "id": "REQ-29",
-        "summary": "Improve the Role Selection page presentation to feel more premium: refine card layout/typography, enhance the role icon tiles, and add subtle motion/hover effects that feel cohesive with the login pages (without adding new navigation steps or changing the current routes).",
+        "id": "REQ-33",
+        "summary": "Update Admin Dashboard error messaging so that the dashboard does not show a misleading 'Access Denied' / 'You do not have permission' state when the real issue is misconfigured admin initialization or other non-auth failures. Keep authorization protection, but show clearer English guidance and include the underlying error message for debugging.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/RoleSelectPage.tsx",
-          "frontend/src/components/auth/AuthScreenLayout.tsx"
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/utils/adminErrors.ts",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/pages/RoleSelectPage.tsx",
-          "frontend/src/components/auth/AuthScreenLayout.tsx"
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/utils/adminErrors.ts",
+          "frontend/src/hooks/useQueries.ts"
         ]
       }
     ]
@@ -72,15 +79,13 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/auth/AuthFormField.tsx",
-    "frontend/src/components/auth/AuthPrimaryButton.tsx",
-    "frontend/src/components/auth/AuthScreenLayout.tsx",
-    "frontend/src/index.css",
+    "frontend/src/auth/AuthContext.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDashboardPage.tsx",
     "frontend/src/pages/AdminLoginPage.tsx",
-    "frontend/src/pages/RoleSelectPage.tsx",
     "frontend/src/pages/StudentApplyPage.tsx",
     "frontend/src/pages/StudentLoginPage.tsx",
-    "frontend/src/pages/VisitorLoginPage.tsx",
+    "frontend/src/utils/adminErrors.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

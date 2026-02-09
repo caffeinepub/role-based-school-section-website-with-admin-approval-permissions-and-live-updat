@@ -39,11 +39,14 @@ export default function StudentLoginPage() {
         toast.success(`Welcome back, ${result.approved.name}!`);
         navigate({ to: '/home' });
       } else if (result.__kind__ === 'pending') {
-        login('pending', username);
+        // Do NOT create a session for pending users
+        toast.warning('Your application is still pending approval. Please wait for admin approval.');
         navigate({ to: '/pending-approval' });
       } else if (result.__kind__ === 'rejected') {
+        // Do NOT create a session for rejected users
         toast.error('Your application has been rejected. Please contact an administrator.');
       } else if (result.__kind__ === 'invalidCredentials') {
+        // Do NOT create a session for invalid credentials
         toast.error('Invalid username or password');
       }
     } catch (error: any) {

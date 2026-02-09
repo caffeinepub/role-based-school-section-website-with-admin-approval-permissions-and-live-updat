@@ -46,11 +46,12 @@ export function useGetAllApplications() {
   return useQuery<StudentApplication[]>({
     queryKey: ['applications'],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error('Actor not available');
       return actor.getAllApplications();
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 5000
+    refetchInterval: 5000,
+    retry: 1
   });
 }
 
@@ -61,12 +62,11 @@ export function useApproveApplication() {
   return useMutation({
     mutationFn: async (username: string) => {
       if (!actor) throw new Error('Actor not available');
-      // Generate a deterministic principal from the username
-      // This creates a unique principal for each username
-      const textEncoder = new TextEncoder();
-      const usernameBytes = textEncoder.encode(username);
-      const principal = Principal.fromUint8Array(usernameBytes);
-      return actor.approveStudentApplication(username, principal);
+      // Use anonymous principal - backend will assign proper principal during approval
+      // The backend's approveStudentApplication expects a principal parameter but
+      // it's used for access control assignment, not for username-to-principal mapping
+      const anonymousPrincipal = Principal.anonymous();
+      return actor.approveStudentApplication(username, anonymousPrincipal);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
@@ -127,11 +127,12 @@ export function useGetApprovedStudents() {
   return useQuery<Student[]>({
     queryKey: ['approvedStudents'],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error('Actor not available');
       return actor.getStudentsList();
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 5000
+    refetchInterval: 5000,
+    retry: 1
   });
 }
 

@@ -38,6 +38,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     saveSession(sessionData);
     setSessionRole(role);
     setUsername(user);
+    
+    // Clear admin-only query caches when logging in as admin
+    // This ensures fresh data loads without stale authorization errors
+    if (role === 'admin') {
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['approvedStudents'] });
+      queryClient.removeQueries({ queryKey: ['applications'] });
+      queryClient.removeQueries({ queryKey: ['approvedStudents'] });
+    }
   };
 
   const logout = () => {

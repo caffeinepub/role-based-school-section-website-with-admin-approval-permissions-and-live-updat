@@ -1,50 +1,71 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T10:29:38.255Z",
-  "summary": "Diff implements a new shared auth layout + form components and updates RoleSelect/AdminLogin/VisitorLogin/StudentLogin/StudentApply styling with gradients, decorative blobs, improved cards, icons, and micro-animations. Some acceptance criteria items (notably reduced-motion compliance and preserving existing loading behavior on student login/apply) cannot be fully verified from the truncated diff.",
+  "generatedAt": "2026-02-09T12:14:29.075Z",
+  "summary": "The diff primarily updates frontend session handling, React Query hooks, student apply/login UX, and introduces clearer admin error utilities. However, the BuildRequest is largely backend + end-to-end authorization/approval correctness; the provided diff summary contains no backend/main.mo changes, so several core requirements cannot be confirmed as implemented from the diff evidence.",
   "missing_requirements": [
     {
-      "id": "REQ-27",
-      "requirement": "Animations respect reduced-motion preferences (no distracting looping motion when prefers-reduced-motion is enabled).",
-      "reason": "The diff introduces looping blob animations (\"animation: blobFloat ... infinite\") but the provided/truncated CSS does not show any prefers-reduced-motion override that disables/reduces these animations.",
+      "id": "REQ-30",
+      "requirement": "Fix Admin shared-password sessions so an Admin user can successfully call admin-only backend methods (e.g., getAllApplications, getStudentsList, setMasterLock, setSectionLock, setItemLock) and the Admin Dashboard no longer shows an authorization error for real admins, including for anonymous (non-Internet-Identity) users.",
+      "reason": "The diff shows frontend session storage/cache invalidation and navigation changes, but provides no evidence of backend authorization/session validation changes that would actually allow anonymous/password-based admin sessions to pass admin-only backend guards.",
       "evidence": [
-        "frontend/src/index.css",
-        "frontend/src/components/auth/AuthScreenLayout.tsx"
+        "frontend/src/auth/AuthContext.tsx",
+        "frontend/src/pages/AdminLoginPage.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "<file-diff>: no backend/main.mo changes shown"
       ]
     },
     {
-      "id": "REQ-28",
-      "requirement": "Existing loading behavior remains correct (e.g., Student login shows spinner when pending; submit buttons disable during pending mutations).",
-      "reason": "AuthPrimaryButton supports a loading spinner, but the StudentLoginPage.tsx and StudentApplyPage.tsx diffs are truncated before showing whether the submit button is wired to loginMutation.isPending/submitMutation.isPending via the loading prop and whether the correct disabling behavior is preserved across all forms.",
+      "id": "REQ-31",
+      "requirement": "Ensure student applications submitted from the Student Apply page reliably appear in the Admin Dashboard Pending Applications list for admins (pending record created in backend; visible on refresh; no silent empty-table due to failed backend calls; show English error alerts).",
+      "reason": "The diff shows frontend invalidation after submit and improved error-to-toast messaging, but does not provide evidence that the backend reliably persists pending applications or that admin queries are now authorized/succeed (which is necessary for visibility in the dashboard).",
       "evidence": [
-        "frontend/src/components/auth/AuthPrimaryButton.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/StudentApplyPage.tsx",
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "<file-diff>: no backend/main.mo changes shown"
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "requirement": "Fix the approval pipeline end-to-end so approving works, pending disappears, approved appears, and the approved student can log in; remove broken principal-generation behavior used during approval that can prevent approvals from completing.",
+      "reason": "Frontend now calls approveStudentApplication with Principal.anonymous() and comments that backend will assign a proper principal, but there is no backend diff evidence that the backend was changed to remove/replace broken principal generation or to ensure approval + subsequent login works with the submitted username/password.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts",
         "frontend/src/pages/StudentLoginPage.tsx",
-        "frontend/src/pages/StudentApplyPage.tsx"
+        "<file-diff>: no backend/main.mo changes shown"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "AuthPrimaryButton introduces a hardcoded loading label text \"Loading...\" when loading=true.",
-      "reason": "The BuildRequest asks for improved hover/pressed/loading states but does not request changing/loading-copy text; this may alter existing user-facing button text during loading.",
+      "description": "Significant UI/visual redesign and \"premium\" styling changes across auth pages and other pages (gradients, animations, decorative backgrounds), beyond the requested authorization/visibility/login fixes.",
+      "reason": "Not requested by any REQ; BuildRequest focuses on authorization correctness, application visibility, approval pipeline, and admin dashboard error messaging.",
       "evidence": [
-        "frontend/src/components/auth/AuthPrimaryButton.tsx"
+        "frontend/src/pages/AdminLoginPage.tsx",
+        "frontend/src/pages/StudentApplyPage.tsx",
+        "frontend-file-summaries.txt (descriptions for RoleSelectPage, VisitorLoginPage, AppLayout, etc.)"
+      ]
+    },
+    {
+      "description": "Added/changed attribution/credit content in layout (e.g., \"caffeine.ai\" attribution and \"Made By Sunyad Ahmed Shrabon\" credit).",
+      "reason": "Not requested by the BuildRequest requirements.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/components/AppLayout.tsx summary)"
       ]
     }
   ],
   "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/auth/AuthFormField.tsx",
-    "frontend/src/components/auth/AuthPrimaryButton.tsx",
-    "frontend/src/components/auth/AuthScreenLayout.tsx",
-    "frontend/src/index.css",
+    "frontend/src/auth/AuthContext.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDashboardPage.tsx",
     "frontend/src/pages/AdminLoginPage.tsx",
-    "frontend/src/pages/RoleSelectPage.tsx",
     "frontend/src/pages/StudentApplyPage.tsx",
     "frontend/src/pages/StudentLoginPage.tsx",
-    "frontend/src/pages/VisitorLoginPage.tsx",
+    "frontend/src/utils/adminErrors.ts",
     "project_state.json"
   ]
 }

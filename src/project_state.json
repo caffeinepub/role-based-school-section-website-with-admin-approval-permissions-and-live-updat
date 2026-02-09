@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 19,
+  "projectStateVersion": 21,
   "summary": "Build a modern, mobile-responsive Class 8 (DOLON) school section website (GitHub Pages-deployable) with role selection (Student/Visitor/Admin), application + admin approval + login, visitor/admin shared-password access, admin dashboard with advanced controls (including section/item edit locking and master freeze), role/editor management, and live-updating content (notices/homework/routine/schedule) with clear lock indicators and a premium post-login dashboard UI in a professional blue/white animated theme.",
   "architectural_notes": [
     "Target deployment includes GitHub Pages (static hosting); real-time global sync and authentication/approval workflows will require a shared backend or hosted realtime database/service (not achievable with only local browser storage).",
@@ -10,9 +10,11 @@
   "known_issues": [
     "App currently renders as a blank white page (likely build/runtime error or routing/asset path issue on deployment).",
     "Student application → approval → login flow is not working: applicants can log in but cannot see approval/pending status, and pending approvals/users are not appearing in the Admin Dashboard.",
-    "Admin Dashboard shows an authorization/access error (\"I don't have access\") when trying to view student applications and approved users; admin cannot fetch these lists."
+    "Admin Dashboard shows an authorization/access error (\"I don't have access\") when trying to view student applications and approved users; admin cannot fetch these lists.",
+    "Student registration/login is currently blocked (registered students cannot enter/login as Student).",
+    "Admin Dashboard shows an \"I am not admin\" / non-admin access error state that should be removed/fixed for admin users."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-implement-a-first-screen-role-selection-ui-with-three-large-interactive-options-student-visitor-admin-selecting-an-option-routes-the-user-into-the-correct-flow-without-full-page-reload-spa-behavior",
@@ -203,6 +205,38 @@
       "title": "Improve the Role Selection page presentation to feel more premium: refine card layout/typography, enhance the role icon tiles, and add subtle motion/hover effects that feel cohesive with the login pages (without adding new navigation steps or changing the current routes).",
       "reqIds": [
         "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-admin-shared-password-sessions-so-an-admin-user-can-successfully-call-admin-only-backend-methods-e-g-getallapplications-getstudentslist-setmasterlock-setsectionlock-setitemlock-and-the-admin-dashboard-no-longer-shows-an-authorization-error-for-real-admins",
+      "title": "Fix Admin shared-password sessions so an Admin user can successfully call admin-only backend methods (e.g., getAllApplications, getStudentsList, setMasterLock, setSectionLock, setItemLock) and the Admin Dashboard no longer shows an authorization error for real admins.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-student-applications-submitted-from-the-student-apply-page-reliably-appear-in-the-admin-dashboard-pending-applications-list-for-admins",
+      "title": "Ensure student applications submitted from the Student Apply page reliably appear in the Admin Dashboard Pending Applications list for admins.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-approval-pipeline-so-approving-a-pending-student-works-end-to-end-approval-action-succeeds-application-disappears-from-pending-student-appears-in-approved-students-and-the-approved-student-can-log-in-remove-any-broken-principal-generation-behavior-used-during-approval-that-can-prevent-approvals-from-completing",
+      "title": "Fix the approval pipeline so approving a pending student works end-to-end (approval action succeeds, application disappears from pending, student appears in Approved Students, and the approved student can log in). Remove any broken principal-generation behavior used during approval that can prevent approvals from completing.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-admin-dashboard-error-messaging-so-that-the-dashboard-does-not-show-a-misleading-access-denied-you-do-not-have-permission-state-when-the-real-issue-is-misconfigured-admin-initialization-or-other-non-auth-failures-keep-authorization-protection-but-show-clearer-english-guidance-and-include-the-underlying-error-message-for-debugging",
+      "title": "Update Admin Dashboard error messaging so that the dashboard does not show a misleading 'Access Denied' / 'You do not have permission' state when the real issue is misconfigured admin initialization or other non-auth failures. Keep authorization protection, but show clearer English guidance and include the underlying error message for debugging.",
+      "reqIds": [
+        "REQ-33"
       ],
       "version": 1
     }

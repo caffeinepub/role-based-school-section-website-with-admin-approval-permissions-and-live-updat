@@ -1,110 +1,116 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Premium blue/white UI polish for role selection and all login/apply screens",
+  "title": "Fix admin session refetch, application visibility, approval flow principal handling, and clearer admin dashboard errors",
   "requirements": [
     {
-      "id": "REQ-27",
-      "summary": "Upgrade visual design and micro-animations for all login-related screens while keeping the blue/white school theme and preserving existing functionality",
+      "id": "REQ-30",
+      "summary": "Ensure Admin shared-password login results in fresh, authorized admin-only data loads and lock mutations without stale unauthorized cache state (works for anonymous identity).",
       "acceptanceCriteria": [
-        "The following pages have noticeably improved styling and motion without changing their core functionality: frontend/src/pages/RoleSelectPage.tsx, VisitorLoginPage.tsx, AdminLoginPage.tsx, StudentLoginPage.tsx, StudentApplyPage.tsx.",
-        "All pages remain mobile-responsive and look good at common breakpoints (mobile, tablet, desktop).",
-        "No user-facing text is changed to non-English; existing copy remains simple English.",
-        "Animations respect reduced-motion preferences (no distracting looping motion when prefers-reduced-motion is enabled)."
+        "After logging in via the Admin shared password flow, the Admin Dashboard loads Pending Applications and Approved Students without an 'Access Denied' / 'I am not admin' error.",
+        "Admin lock controls (master/section/item) can be toggled successfully after Admin login.",
+        "This fix works even when the user is not using Internet Identity (anonymous identity), since Admin login is password-based in this app."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/auth/AuthScreenLayout.tsx",
-          "operation": "create",
-          "description": "Create a shared auth/page shell that provides a premium blue/white background (subtle gradient + soft decorative shapes), consistent centered container sizing, and motion-safe entrance animations. Use existing shadcn-ui primitives (e.g., Card) where appropriate for structure. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/auth/AuthContext.tsx",
           "operation": "modify",
-          "description": "Add reusable utility classes/keyframes for auth screen polish (e.g., subtle fade/slide, soft glow, decorative shape positioning) and ensure all animations are disabled or simplified under prefers-reduced-motion. Keep the existing theme variables and English copy unchanged."
-        },
-        {
-          "path": "frontend/src/pages/VisitorLoginPage.tsx",
-          "operation": "modify",
-          "description": "Refactor to use AuthScreenLayout for the upgraded background and consistent card presentation; enhance card depth/borders/glow and add motion-safe hover/focus micro-interactions without changing login logic, copy, or navigation. Continue using shadcn-ui Card/Input/Button/Label. Verify the component's usage instructions before implementing."
+          "description": "On successful login(role change), clear or invalidate React Query caches that can retain stale unauthorized errors (especially admin-only queries like applications/students/locks) so the Admin Dashboard refetches with the new admin session. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/pages/AdminLoginPage.tsx",
           "operation": "modify",
-          "description": "Refactor to use AuthScreenLayout; apply premium card styling (depth, refined borders, subtle glow) and cohesive motion-safe animations while preserving admin login logic and existing routes. Continue using shadcn-ui Card/Input/Button/Label. Verify the component's usage instructions before implementing."
+          "description": "After shared-password admin login, trigger a predictable admin data refresh (e.g., by clearing/invalidation via AuthContext changes and/or navigating in a way that remounts admin queries) so real admins do not see a cached 'not admin' state. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/StudentLoginPage.tsx",
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
           "operation": "modify",
-          "description": "Refactor to use AuthScreenLayout; apply consistent premium card styling and motion-safe micro-animations while keeping existing student login behavior (including spinner and disabled states) and navigation. Continue using shadcn-ui Card/Input/Button/Label. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/StudentApplyPage.tsx",
-          "operation": "modify",
-          "description": "Refactor both the application form and the success state to use AuthScreenLayout and consistent premium card styling; add motion-safe transitions while preserving form submission behavior, pending state, and existing copy. Continue using shadcn-ui Card/Input/Button/Label. Verify the component's usage instructions before implementing."
+          "description": "Add a clear 'Retry/Refresh' action that manually refetches Pending Applications and Approved Students, and ensure the dashboard does not keep showing an old authorization error after login when refetch succeeds. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-28",
-      "summary": "Modernize and standardize input and button interactions across login/apply forms (focus, errors, icons, hover/pressed/loading/disabled states)",
+      "id": "REQ-31",
+      "summary": "Make student application submission and admin pending-list visibility reliable, with explicit English errors instead of silent empty states.",
       "acceptanceCriteria": [
-        "Inputs show a clear focus state (ring/border) consistent with the existing Tailwind theme variables.",
-        "Error states are visually distinct (border + helper text), and remain accessible (sufficient contrast).",
-        "Buttons have consistent hover/active/disabled styling across Visitor/Admin/Student login and Student apply pages.",
-        "Existing loading behavior remains correct (e.g., Student login shows spinner when pending; submit buttons disable during pending mutations)."
+        "Submitting a Student Application creates a pending record in the backend.",
+        "When an Admin opens the Admin Dashboard, the submitted application is visible in the Pending Applications table within the next auto-refresh cycle (or immediately after a manual refetch).",
+        "No silent empty-table state occurs due to failed backend calls; errors are shown as English error alerts."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/auth/AuthFormField.tsx",
-          "operation": "create",
-          "description": "Create a reusable form field wrapper to standardize spacing, label + helper/error text, optional leading icon slot, and consistent focus/error styling around shadcn-ui Input. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/auth/AuthPrimaryButton.tsx",
-          "operation": "create",
-          "description": "Create a reusable primary action button wrapper to standardize hover/active/disabled styling and optional loading presentation while delegating behavior to the existing shadcn-ui Button. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/VisitorLoginPage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Adopt AuthFormField/AuthPrimaryButton to unify focus rings, error presentation, and button interaction states; optionally add a leading icon where appropriate while keeping existing logic (including password visibility toggle) and text unchanged. Verify the component's usage instructions before implementing."
+          "description": "Update admin-listing queries (e.g., applications/students) to avoid returning silent empty arrays when the actor is unavailable or calls fail; throw meaningful errors so the UI renders an error state instead. Keep periodic refresh, and ensure invalidation on successful application submit remains. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/AdminLoginPage.tsx",
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
           "operation": "modify",
-          "description": "Adopt AuthFormField/AuthPrimaryButton to unify focus rings, error presentation, and button states; optionally add a leading icon where appropriate without altering admin password validation logic or copy. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/StudentLoginPage.tsx",
-          "operation": "modify",
-          "description": "Adopt AuthFormField/AuthPrimaryButton and ensure pending/login spinner behavior remains correct (button disabled while pending, spinner visible); add clearer focus and error visuals without changing any auth/approval routing logic or copy. Verify the component's usage instructions before implementing."
+          "description": "Ensure the Pending Applications section distinguishes between: loading, true empty, and error states (including actor-not-available), and that errors show as English alerts rather than an empty table. Include a manual refetch control for applications. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/pages/StudentApplyPage.tsx",
           "operation": "modify",
-          "description": "Adopt AuthFormField/AuthPrimaryButton to standardize spacing, focus rings, and accessible error visuals (while still using existing toast behavior); ensure submit disabled/loading remains correct and copy unchanged. Verify the component's usage instructions before implementing."
+          "description": "Improve submission failure handling to show clear English errors (including extracted underlying error message when available) and ensure post-submit behavior encourages admin visibility (e.g., keeping invalidateQueries and optionally prompting user that admin may need to refresh). Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-29",
-      "summary": "Improve Role Selection page with premium card layout/typography, enhanced icon tiles, and cohesive hover/focus motion without changing routes",
+      "id": "REQ-32",
+      "summary": "Fix approval pipeline UI so approving a student completes without frontend errors; remove broken principal generation during approval; ensure student login navigation and session creation follow backend status.",
       "acceptanceCriteria": [
-        "Role cards have enhanced visual hierarchy (title/description balance, spacing) and a cohesive premium style matching the updated login screens.",
-        "Hover/focus states for role cards are smooth and clear, and do not cause layout shift.",
-        "Clicking each role still navigates to the same existing paths (/student-apply, /visitor-login, /admin-login) with SPA behavior."
+        "Clicking Approve for a pending application succeeds without throwing a frontend-side error.",
+        "After approval, the application is removed from the Pending Applications list and appears in Approved Students within the next refresh.",
+        "An approved student can log in on the Student Login page using the same username/password they submitted in the application and is navigated to /home with the correct role (student or studentEditor).",
+        "If the student is still pending, Student Login navigates to /pending-approval and shows no 'approved' access.",
+        "If credentials are invalid, the Student Login page shows a clear English error and does not create a session."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/RoleSelectPage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update RoleSelectPage to use the same premium background/shell as the login/apply screens (AuthScreenLayout), refine role card typography/spacing, enhance icon tiles, and add smooth motion-safe hover/focus effects that avoid layout shift; preserve existing navigation targets and routes. Continue using shadcn-ui Card for consistent styling. Verify the component's usage instructions before implementing."
+          "description": "Remove/replace the broken deterministic principal generation in the approval mutation. Use a safe principal value compatible with the backend’s approval flow (e.g., avoid Principal.fromUint8Array(usernameBytes) which can throw) so approvals do not fail client-side; keep query invalidation for applications and approvedStudents on success. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/auth/AuthScreenLayout.tsx",
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
           "operation": "modify",
-          "description": "Ensure the shared auth shell supports the wider Role Selection layout (max width/grid-friendly container) and provides consistent decorative background styling/motion-safe entrance animations to match the login/apply screens. Verify the component's usage instructions before implementing."
+          "description": "Harden approve action UX: disable buttons while pending, show clearer English errors on failure (using existing error utilities), and ensure post-approve UI reflects refetch/invalidation (pending disappears; approved list updates). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/StudentLoginPage.tsx",
+          "operation": "modify",
+          "description": "Ensure login flow strictly follows backend status: only create a session for approved; route pending to /pending-approval; show clear English errors for rejected/invalidCredentials and do not create a session in those cases. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/auth/AuthContext.tsx",
+          "operation": "modify",
+          "description": "Ensure session creation/clearing semantics are correct for student roles: do not persist a session on failed login states, and clear relevant cached queries on logout and role transitions to prevent cross-role data leakage/stale role UI. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-33",
+      "summary": "Improve Admin Dashboard error messaging to avoid misleading 'Access Denied' when failures are non-auth, while keeping authorization protection and including underlying error details.",
+      "acceptanceCriteria": [
+        "When an admin-only query fails due to authorization, the UI shows an English message that tells the user to log in as Admin and indicates the request was unauthorized.",
+        "When an admin-only query fails for non-authorization reasons, the UI shows 'Could not load data' and includes the extracted underlying error message (using existing utilities) so debugging is possible.",
+        "The Admin Dashboard does not permanently show an authorization error if the user is actually logged in as Admin and backend calls are succeeding."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Refine renderErrorAlert: for authorization-like errors, show guidance to log in as Admin and include the underlying extracted error message for debugging; for non-auth errors, show 'Could not load data' plus extracted message. Ensure the alert state is replaced by data once refetch succeeds (no sticky access-denied view). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/utils/adminErrors.ts",
+          "operation": "modify",
+          "description": "Improve authorization error detection and message extraction robustness (e.g., include more patterns used by backend traps, preserve original message text for display) so the dashboard can accurately distinguish unauthorized vs other failures. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Ensure admin-only queries surface errors (instead of empty arrays) so the dashboard can display the correct error category and underlying message, and configure query behavior to refetch appropriately after admin login/invalidation. Verify the component's usage instructions before implementing."
         }
       ]
     }
