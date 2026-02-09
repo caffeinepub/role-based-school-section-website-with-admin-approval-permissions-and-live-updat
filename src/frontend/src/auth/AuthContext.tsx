@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { SessionRole, SessionData, saveSession, loadSession, clearSession } from './session';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthContextValue {
   sessionRole: SessionRole;
@@ -18,6 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionRole, setSessionRole] = useState<SessionRole>('unauthenticated');
   const [username, setUsername] = useState<string | undefined>(undefined);
   const { clear: clearII } = useInternetIdentity();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const session = loadSession();
@@ -43,6 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessionRole('unauthenticated');
     setUsername(undefined);
     clearII();
+    // Clear all cached data on logout
+    queryClient.clear();
   };
 
   const isAdmin = sessionRole === 'admin';

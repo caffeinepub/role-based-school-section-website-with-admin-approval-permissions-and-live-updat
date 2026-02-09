@@ -97,6 +97,18 @@ const pendingRoute = createRoute({
   }
 });
 
+const pendingApprovalRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/pending-approval',
+  component: PendingApprovalPage,
+  beforeLoad: ({ context }) => {
+    const auth = context as { sessionRole?: string };
+    if (auth.sessionRole !== 'pending') {
+      throw redirect({ to: '/' });
+    }
+  }
+});
+
 const adminDashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
@@ -165,6 +177,7 @@ const routeTree = rootRoute.addChildren([
   studentApplyRoute,
   studentLoginRoute,
   pendingRoute,
+  pendingApprovalRoute,
   adminDashboardRoute,
   noticesRoute,
   homeworkRoute,

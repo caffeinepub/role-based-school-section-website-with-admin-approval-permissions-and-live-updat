@@ -1,13 +1,28 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import { Principal } from '@dfinity/principal';
 import type { 
   StudentApplication, 
   Announcement, 
   Homework, 
   ClassRoutine, 
   ClassTime,
-  RoutineDay 
+  RoutineDay,
+  StudentLoginStatus,
+  Student
 } from '../backend';
+
+// Student Login
+export function useStudentLogin() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async ({ username, password }: { username: string; password: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.tryStudentLogin(username, password);
+    }
+  });
+}
 
 // Student Applications
 export function useSubmitApplication() {
@@ -46,10 +61,16 @@ export function useApproveApplication() {
   return useMutation({
     mutationFn: async (username: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.approveStudentApplication(username);
+      // Generate a deterministic principal from the username
+      // This creates a unique principal for each username
+      const textEncoder = new TextEncoder();
+      const usernameBytes = textEncoder.encode(username);
+      const principal = Principal.fromUint8Array(usernameBytes);
+      return actor.approveStudentApplication(username, principal);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['approvedStudents'] });
     }
   });
 }
@@ -79,7 +100,7 @@ export function usePromoteToEditor() {
       return actor.promoteToEditor(username);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['approvedStudents'] });
     }
   });
 }
@@ -94,8 +115,23 @@ export function useDemoteToStudent() {
       return actor.demoteToStudent(username);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['approvedStudents'] });
     }
+  });
+}
+
+// Approved Students List
+export function useGetApprovedStudents() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Student[]>({
+    queryKey: ['approvedStudents'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getStudentsList();
+    },
+    enabled: !!actor && !isFetching,
+    refetchInterval: 5000
   });
 }
 

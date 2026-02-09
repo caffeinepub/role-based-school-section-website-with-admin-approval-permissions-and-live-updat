@@ -45,6 +45,11 @@ export interface Homework {
   'author' : Principal,
   'timestamp' : Time,
 }
+export interface ProfileResponse {
+  'username' : string,
+  'name' : string,
+  'role' : Role,
+}
 export type Role = { 'admin' : null } |
   { 'studentEditor' : null } |
   { 'student' : null };
@@ -59,6 +64,10 @@ export interface RoutinePeriod {
   'teacher' : string,
   'periodNumber' : bigint,
 }
+export interface Student {
+  'principal' : Principal,
+  'profile' : ProfileResponse,
+}
 export interface StudentApplication {
   'username' : string,
   'password' : string,
@@ -66,6 +75,10 @@ export interface StudentApplication {
   'section' : string,
   'className' : string,
 }
+export type StudentLoginStatus = { 'pending' : null } |
+  { 'approved' : { 'principal' : Principal, 'name' : string, 'role' : Role } } |
+  { 'rejected' : null } |
+  { 'invalidCredentials' : null };
 export type Time = bigint;
 export interface UserApprovalInfo {
   'status' : ApprovalStatus,
@@ -91,7 +104,7 @@ export interface _SERVICE {
     [string, string, string, string, string],
     undefined
   >,
-  'approveStudentApplication' : ActorMethod<[string], undefined>,
+  'approveStudentApplication' : ActorMethod<[string, Principal], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'deleteAnnouncement' : ActorMethod<[bigint], undefined>,
   'deleteClassRoutine' : ActorMethod<[bigint], undefined>,
@@ -105,11 +118,11 @@ export interface _SERVICE {
   'getAllRoutines' : ActorMethod<[], Array<ClassRoutine>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getStudentsList' : ActorMethod<[], Array<Student>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isCallerApproved' : ActorMethod<[], boolean>,
   'isContentLocked' : ActorMethod<[string, [] | [bigint]], boolean>,
-  'isUserApproved' : ActorMethod<[string], boolean>,
   'listApprovals' : ActorMethod<[], Array<UserApprovalInfo>>,
   'promoteToEditor' : ActorMethod<[string], undefined>,
   'rejectStudentApplication' : ActorMethod<[string], undefined>,
@@ -120,6 +133,7 @@ export interface _SERVICE {
   'setMasterLock' : ActorMethod<[boolean], undefined>,
   'setSectionLock' : ActorMethod<[string, boolean], undefined>,
   'submitApplication' : ActorMethod<[StudentApplication], undefined>,
+  'tryStudentLogin' : ActorMethod<[string, string], StudentLoginStatus>,
   'updateAnnouncement' : ActorMethod<[bigint, string, string], undefined>,
   'updateClassRoutine' : ActorMethod<[bigint, Array<RoutineDay>], undefined>,
   'updateClassTime' : ActorMethod<

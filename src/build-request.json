@@ -1,38 +1,82 @@
 {
   "kind": "build_request",
-  "title": "Add shiny footer credit text",
-  "priority": "normal",
+  "title": "Fix Admin Dashboard access denied for applications and approved users",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-18",
-      "text": "Add a shiny/animated credit label with the exact text \"Made By Sunyad Ahmed Shrabon\" to the global app footer (in the shared layout) and style it with a subtle “shine” effect that matches the existing school-friendly theme.",
-      "target": "frontend",
+      "id": "REQ-24",
+      "text": "Fix admin authorization initialization so that an admin who logs in via the shared admin password can successfully call admin-only backend methods (e.g., `getAllApplications()` and `getStudentsList()`) without receiving an unauthorized/access-denied error.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-user-1"
+          "recent-messages-5"
         ],
         "quotes": [
-          "add a shine:\"Made By Sunyad Ahmed Shrabon\""
+          "it is saying i dont have access to see applications and users"
         ]
       },
       "acceptanceCriteria": [
-        "The footer displays the exact text \"Made By Sunyad Ahmed Shrabon\" on all pages that render the shared layout/footer.",
-        "The credit text has a visible but subtle shine animation (e.g., moving highlight) without harming readability.",
-        "The shine animation respects users who prefer reduced motion (when `prefers-reduced-motion: reduce` is set, the animation is disabled or replaced with a non-animated style).",
-        "No user-facing text is added in any language other than English."
+        "After logging in on the Admin Login page with the correct password, the Admin Dashboard loads both the Pending Applications table and the Approved Students table (when data exists) instead of showing an access-denied alert.",
+        "Admin-only actions (approve/reject/promote/demote and lock toggles) succeed when executed by a logged-in admin.",
+        "Non-admin roles (visitor/student) still cannot call admin-only backend methods and continue to see appropriate access restrictions."
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "text": "Update frontend actor initialization to ensure `_initializeAccessControlWithSecret(...)` is invoked consistently for admin sessions (including when no Internet Identity identity is present), using the existing `caffeineAdminToken` URL parameter handling in `frontend/src/hooks/useActor.ts`, so that admin backend calls are authorized.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages-5"
+        ],
+        "quotes": [
+          "it is saying i dont have access to see applications and users"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`frontend/src/hooks/useActor.ts` calls `actor._initializeAccessControlWithSecret(adminToken)` for the created actor even when `identity` is not set (anonymous actor case), without breaking non-admin usage.",
+        "If `caffeineAdminToken` is missing/empty, the app does not crash; admin-only backend calls still fail with an authorization error as expected."
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "text": "Improve the Admin Dashboard error handling for the Pending Applications and Approved Students queries so the UI does not always label any error as \"Access Denied\"; instead, display a clear English error state that distinguishes authorization failures from other failures and includes the underlying error message for debugging.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages-5"
+        ],
+        "quotes": [
+          "it is saying i dont have access to see applications and users"
+        ]
+      },
+      "acceptanceCriteria": [
+        "If the backend returns an authorization error, the Admin Dashboard shows an alert titled \"Access denied\" with English guidance that only admins can view the section.",
+        "If the backend returns a non-authorization error (network/canister error/unknown), the Admin Dashboard shows an alert titled \"Could not load data\" and displays the error message text in the description.",
+        "The underlying error object is logged to `console.error` for both queries."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend immutablePaths (e.g., frontend/src/main.tsx and the hooks listed as immutable).",
-    "Implement the change using the existing React + Tailwind CSS styling approach already used in the project."
+    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and anything under frontend/src/components/ui (compose instead of editing).",
+    "Backend must remain a single Motoko actor with all logic in backend/main.mo; only add backend/migration.mo if a stable-state upgrade is required."
   ],
   "nonGoals": [
-    "Do not change authentication, routing, or backend behavior.",
-    "Do not add new pages or navigation items as part of this change."
+    "Do not redesign the Admin Dashboard UI beyond what is necessary to fix authorization and improve error messaging.",
+    "Do not add new authentication providers or third-party login systems; continue using the existing shared-password admin flow and the existing backend secret initialization mechanism."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

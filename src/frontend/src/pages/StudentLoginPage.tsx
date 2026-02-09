@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useAuth } from '../auth/AuthContext';
+import { useStudentLogin } from '../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function StudentLoginPage() {
@@ -13,8 +14,9 @@ export default function StudentLoginPage() {
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const loginMutation = useStudentLogin();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!username || !password) {
@@ -22,9 +24,31 @@ export default function StudentLoginPage() {
       return;
     }
 
-    login('student', username);
-    navigate({ to: '/home' });
-    toast.success('Login successful!');
+    try {
+      const result = await loginMutation.mutateAsync({ username, password });
+
+      if (result.__kind__ === 'approved') {
+        // Map backend role to session role
+        let sessionRole: 'student' | 'studentEditor' = 'student';
+        if (result.approved.role === 'studentEditor') {
+          sessionRole = 'studentEditor';
+        }
+
+        login(sessionRole, username);
+        toast.success(`Welcome back, ${result.approved.name}!`);
+        navigate({ to: '/home' });
+      } else if (result.__kind__ === 'pending') {
+        login('pending', username);
+        navigate({ to: '/pending-approval' });
+      } else if (result.__kind__ === 'rejected') {
+        toast.error('Your application has been rejected. Please contact an administrator.');
+      } else if (result.__kind__ === 'invalidCredentials') {
+        toast.error('Invalid username or password');
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast.error(error.message || 'Failed to login. Please try again.');
+    }
   };
 
   return (
@@ -55,6 +79,7 @@ export default function StudentLoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
+                  disabled={loginMutation.isPending}
                 />
               </div>
 
@@ -66,14 +91,23 @@ export default function StudentLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
+                  disabled={loginMutation.isPending}
                 />
               </div>
 
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                disabled={loginMutation.isPending}
               >
-                Login
+                {loginMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  'Login'
+                )}
               </Button>
 
               <div className="text-center">
@@ -82,6 +116,7 @@ export default function StudentLoginPage() {
                   variant="link"
                   onClick={() => navigate({ to: '/student-apply' })}
                   className="text-sm"
+                  disabled={loginMutation.isPending}
                 >
                   Don't have an account? Apply here
                 </Button>

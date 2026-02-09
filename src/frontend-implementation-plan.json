@@ -1,27 +1,62 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add shiny animated footer credit label",
+  "title": "Fix admin secret initialization and Admin Dashboard error messaging",
   "requirements": [
     {
-      "id": "REQ-18",
-      "summary": "Add a subtle, school-theme-friendly shine animation to a global footer credit label with exact text \"Made By Sunyad Ahmed Shrabon\", respecting reduced-motion preferences.",
+      "id": "REQ-24",
+      "summary": "Ensure shared-password admin sessions are authorized for admin-only dashboard data/actions while preserving non-admin restrictions.",
       "acceptanceCriteria": [
-        "The footer displays the exact text \"Made By Sunyad Ahmed Shrabon\" on all pages that render the shared layout/footer.",
-        "The credit text has a visible but subtle shine animation (e.g., moving highlight) without harming readability.",
-        "The shine animation respects users who prefer reduced motion (when `prefers-reduced-motion: reduce` is set, the animation is disabled or replaced with a non-animated style).",
-        "No user-facing text is added in any language other than English."
+        "After logging in on the Admin Login page with the correct password, the Admin Dashboard loads both the Pending Applications table and the Approved Students table (when data exists) instead of showing an access-denied alert.",
+        "Admin-only actions (approve/reject/promote/demote and lock toggles) succeed when executed by a logged-in admin.",
+        "Non-admin roles (visitor/student) still cannot call admin-only backend methods and continue to see appropriate access restrictions."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AppLayout.tsx",
+          "path": "frontend/src/hooks/useActor.ts",
           "operation": "modify",
-          "description": "Update the shared layout footer to include a dedicated credit label that renders the exact text \"Made By Sunyad Ahmed Shrabon\" on all pages using AppLayout, and apply a custom CSS class for the subtle shine effect (no routing/auth changes)."
+          "description": "Update actor creation so admin secret initialization is applied consistently for admin sessions even when using an anonymous actor (no Internet Identity). Ensure the admin secret is only applied when a non-empty caffeineAdminToken is available, so non-admin/visitor/student behavior remains restricted."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
           "operation": "modify",
-          "description": "Add the custom CSS (Tailwind-compatible) for the footer credit shine effect, including keyframes and a `@media (prefers-reduced-motion: reduce)` override to disable/neutralize the animation while keeping the text readable and consistent with the existing school-friendly theme."
+          "description": "After the authorization initialization fix, verify the dashboard queries and existing admin-only actions (approve/reject/promote/demote and lock toggles) correctly use the authorized actor and no longer spuriously show access-denied for valid admin sessions."
+        }
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "summary": "Invoke _initializeAccessControlWithSecret(adminToken) for admin sessions even without an Internet Identity identity, using the existing caffeineAdminToken parameter handling.",
+      "acceptanceCriteria": [
+        "`frontend/src/hooks/useActor.ts` calls `actor._initializeAccessControlWithSecret(adminToken)` for the created actor even when `identity` is not set (anonymous actor case), without breaking non-admin usage.",
+        "If `caffeineAdminToken` is missing/empty, the app does not crash; admin-only backend calls still fail with an authorization error as expected."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Refactor actor initialization so both authenticated and anonymous actor paths can apply admin initialization when caffeineAdminToken is present. Guard the call so missing/empty tokens do not crash and do not grant admin access."
+        }
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "summary": "Improve Admin Dashboard query error handling to distinguish authorization failures from other failures and show underlying error messages.",
+      "acceptanceCriteria": [
+        "If the backend returns an authorization error, the Admin Dashboard shows an alert titled \"Access denied\" with English guidance that only admins can view the section.",
+        "If the backend returns a non-authorization error (network/canister error/unknown), the Admin Dashboard shows an alert titled \"Could not load data\" and displays the error message text in the description.",
+        "The underlying error object is logged to `console.error` for both queries."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/adminErrors.ts",
+          "operation": "create",
+          "description": "Add small helpers to normalize errors into a message string and detect likely authorization failures (e.g., by checking error text for \"Unauthorized\"/\"access\"/\"denied\" patterns) to support consistent Admin Dashboard error rendering."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Update Pending Applications and Approved Students sections to (1) log query errors via console.error, (2) show \"Access denied\" only for authorization-like errors with guidance, and (3) show \"Could not load data\" for other errors including the underlying error message text in the alert description."
         }
       ]
     }

@@ -8,7 +8,7 @@ import Time "mo:core/Time";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import List "mo:core/List";
-import Order "mo:core/Order";
+import Nat "mo:core/Nat";
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -103,11 +103,34 @@ actor {
     author : Principal;
   };
 
+  public type StudentLoginStatus = {
+    #approved : {
+      principal : Principal;
+      role : Role;
+      name : Text;
+    };
+    #pending;
+    #rejected;
+    #invalidCredentials;
+  };
+
+  public type ProfileResponse = {
+    username : Text;
+    role : Role;
+    name : Text;
+  };
+
+  public type Student = {
+    principal : Principal;
+    profile : ProfileResponse;
+  };
+
   // Data stores
   let studentApplications = Map.empty<Text, StudentApplication>();
   let userProfiles = Map.empty<Principal, UserProfile>();
   let usernameToProfile = Map.empty<Text, Principal>();
   let pendingApprovals = Map.empty<Principal, Text>(); // Maps principal to username for approval flow
+  let studentCredentials = Map.empty<Text, Text>(); // Maps username to password for approved students
   let announcements = Map.empty<Nat, Announcement>();
   let homeworks = Map.empty<Nat, Homework>();
   let classRoutines = Map.empty<Nat, ClassRoutine>();
@@ -212,6 +235,7 @@ actor {
   };
 
   public query ({ caller }) func isContentLocked(section : Text, itemId : ?Nat) : async Bool {
+    // Anyone can check lock status (including guests)
     // Master lock check
     if (lockState.master) { return true; };
 
@@ -397,8 +421,8 @@ actor {
   };
 
   // Student Application Functions
-  public shared ({ caller }) func submitApplication(app : StudentApplication) : async () {
-    // Anyone (including guests) can submit application
+  public shared func submitApplication(app : StudentApplication) : async () {
+    // Anyone (including guests) can submit application - no caller needed
     if (usernameToProfile.containsKey(app.username)) {
       Runtime.trap("Username already taken");
     };
@@ -406,17 +430,6 @@ actor {
       Runtime.trap("Application already submitted for this username");
     };
     studentApplications.add(app.username, app);
-    pendingApprovals.add(caller, app.username);
-  };
-
-  public query ({ caller }) func isUserApproved(username : Text) : async Bool {
-    // Check if the username corresponds to an approved user
-    switch (usernameToProfile.get(username)) {
-      case (?principal) { 
-        AccessControl.hasPermission(accessControlState, principal, #user);
-      };
-      case (null) { false };
-    };
   };
 
   public query ({ caller }) func getAllApplications() : async [StudentApplication] {
@@ -424,7 +437,7 @@ actor {
     Array.fromIter(studentApplications.values());
   };
 
-  public shared ({ caller }) func approveStudentApplication(username : Text) : async () {
+  public shared ({ caller }) func approveStudentApplication(username : Text, studentPrincipal : Principal) : async () {
     requireAdmin(caller);
     
     switch (studentApplications.get(username)) {
@@ -434,21 +447,8 @@ actor {
           Runtime.trap("Username already taken");
         };
         
-        // Find the principal that submitted this application
-        var studentPrincipal : ?Principal = null;
-        for ((principal, uname) in pendingApprovals.entries()) {
-          if (uname == username) {
-            studentPrincipal := ?principal;
-          };
-        };
-        
-        let approvedPrincipal = switch (studentPrincipal) {
-          case (?p) { p };
-          case (null) { Runtime.trap("Cannot find principal for this application") };
-        };
-        
         // Assign user role in access control system
-        AccessControl.assignRole(accessControlState, caller, approvedPrincipal, #user);
+        AccessControl.assignRole(accessControlState, caller, studentPrincipal, #user);
         
         let profile : UserProfile = {
           name = app.name;
@@ -456,10 +456,11 @@ actor {
           role = #student;
         };
         
-        userProfiles.add(approvedPrincipal, profile);
-        usernameToProfile.add(username, approvedPrincipal);
+        userProfiles.add(studentPrincipal, profile);
+        usernameToProfile.add(username, studentPrincipal);
+        studentCredentials.add(username, app.password);
         studentApplications.remove(username);
-        pendingApprovals.remove(approvedPrincipal);
+        pendingApprovals.remove(studentPrincipal);
       };
     };
   };
@@ -566,7 +567,7 @@ actor {
     nextAnnouncementId += 1;
   };
 
-  public query ({ caller }) func getAllAnnouncements() : async [Announcement] {
+  public query func getAllAnnouncements() : async [Announcement] {
     // Anyone can view announcements (including guests)
     Array.fromIter(announcements.values());
   };
@@ -629,7 +630,7 @@ actor {
     nextHomeworkId += 1;
   };
 
-  public query ({ caller }) func getAllHomeworks() : async [Homework] {
+  public query func getAllHomeworks() : async [Homework] {
     // Anyone can view homework (including guests)
     Array.fromIter(homeworks.values());
   };
@@ -674,7 +675,7 @@ actor {
   };
 
   // Class Routine Functions
-  public query ({ caller }) func getAllRoutines() : async [ClassRoutine] {
+  public query func getAllRoutines() : async [ClassRoutine] {
     // Anyone can view routines (including guests)
     Array.fromIter(classRoutines.values());
   };
@@ -752,7 +753,7 @@ actor {
     nextClassTimeId += 1;
   };
 
-  public query ({ caller }) func getAllClassTimes() : async [ClassTime] {
+  public query func getAllClassTimes() : async [ClassTime] {
     // Anyone can view class times (including guests)
     Array.fromIter(classTimes.values());
   };
@@ -805,16 +806,80 @@ actor {
   };
 
   public shared ({ caller }) func setApproval(user : Principal, status : UserApproval.ApprovalStatus) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can perform this action");
-    };
+    requireAdmin(caller);
     UserApproval.setApproval(approvalState, user, status);
   };
 
   public query ({ caller }) func listApprovals() : async [UserApproval.UserApprovalInfo] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can perform this action");
-    };
+    requireAdmin(caller);
     UserApproval.listApprovals(approvalState);
+  };
+
+  // Student login and role check function - UNAUTHENTICATED (allows guests to check status)
+  public query func tryStudentLogin(username : Text, password : Text) : async StudentLoginStatus {
+    // Check if username exists and is approved
+    switch (usernameToProfile.get(username)) {
+      case (null) {
+        // Check if there's a pending application with this username
+        switch (studentApplications.get(username)) {
+          case (?app) {
+            if (app.password == password) {
+              return #pending;
+            } else {
+              return #invalidCredentials;
+            };
+          };
+          case (null) { return #invalidCredentials };
+        };
+      };
+      case (?ownerPrincipal) {
+        // Check if user is approved in access control
+        if (not AccessControl.hasPermission(accessControlState, ownerPrincipal, #user)) {
+          return #rejected;
+        };
+
+        // Validate password
+        switch (studentCredentials.get(username)) {
+          case (null) { #invalidCredentials };
+          case (?storedPassword) {
+            if (password != storedPassword) {
+              return #invalidCredentials;
+            };
+
+            // Get profile and return approved status
+            switch (userProfiles.get(ownerPrincipal)) {
+              case (null) { #invalidCredentials };
+              case (?profile) {
+                #approved({
+                  principal = ownerPrincipal;
+                  role = profile.role;
+                  name = profile.name;
+                });
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+
+  // Students list for admin
+  public query ({ caller }) func getStudentsList() : async [Student] {
+    requireAdmin(caller);
+
+    let profiles = userProfiles.toArray();
+    let studentsList = List.empty<Student>();
+
+    for ((principal, profile) in profiles.values()) {
+      studentsList.add({
+        principal;
+        profile = {
+          username = profile.username;
+          role = profile.role;
+          name = profile.name;
+        };
+      });
+    };
+    studentsList.toArray();
   };
 };

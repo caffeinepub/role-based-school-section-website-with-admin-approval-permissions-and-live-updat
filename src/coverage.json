@@ -1,26 +1,47 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T09:18:40.645Z",
+  "generatedAt": "2026-02-09T10:18:31.169Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-18",
-        "summary": "Add a shiny/animated credit label with the exact text \"Made By Sunyad Ahmed Shrabon\" to the global app footer (in the shared layout) and style it with a subtle “shine” effect that matches the existing school-friendly theme.",
+        "id": "REQ-24",
+        "summary": "Fix admin authorization initialization so that an admin who logs in via the shared admin password can successfully call admin-only backend methods (e.g., `getAllApplications()` and `getStudentsList()`) without receiving an unauthorized/access-denied error.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/AppLayout.tsx",
-          "frontend/src/index.css"
+          "frontend/src/hooks/useActor.ts",
+          "frontend/src/pages/AdminDashboardPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/AppLayout.tsx",
-          "frontend/src/index.css"
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-25",
+        "summary": "Update frontend actor initialization to ensure `_initializeAccessControlWithSecret(...)` is invoked consistently for admin sessions (including when no Internet Identity identity is present), using the existing `caffeineAdminToken` URL parameter handling in `frontend/src/hooks/useActor.ts`, so that admin backend calls are authorized.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/hooks/useActor.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-26",
+        "summary": "Improve the Admin Dashboard error handling for the Pending Applications and Approved Students queries so the UI does not always label any error as \"Access Denied\"; instead, display a clear English error state that distinguishes authorization failures from other failures and includes the underlying error message for debugging.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/utils/adminErrors.ts",
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/utils/adminErrors.ts",
+          "frontend/src/pages/AdminDashboardPage.tsx"
         ]
       }
     ]
@@ -30,8 +51,8 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/AppLayout.tsx",
-    "frontend/src/index.css",
+    "frontend/src/pages/AdminDashboardPage.tsx",
+    "frontend/src/utils/adminErrors.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -74,6 +74,15 @@ export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'role' : Role,
 });
+export const ProfileResponse = IDL.Record({
+  'username' : IDL.Text,
+  'name' : IDL.Text,
+  'role' : Role,
+});
+export const Student = IDL.Record({
+  'principal' : IDL.Principal,
+  'profile' : ProfileResponse,
+});
 export const ApprovalStatus = IDL.Variant({
   'pending' : IDL.Null,
   'approved' : IDL.Null,
@@ -82,6 +91,16 @@ export const ApprovalStatus = IDL.Variant({
 export const UserApprovalInfo = IDL.Record({
   'status' : ApprovalStatus,
   'principal' : IDL.Principal,
+});
+export const StudentLoginStatus = IDL.Variant({
+  'pending' : IDL.Null,
+  'approved' : IDL.Record({
+    'principal' : IDL.Principal,
+    'name' : IDL.Text,
+    'role' : Role,
+  }),
+  'rejected' : IDL.Null,
+  'invalidCredentials' : IDL.Null,
 });
 
 export const idlService = IDL.Service({
@@ -98,7 +117,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
-  'approveStudentApplication' : IDL.Func([IDL.Text], [], []),
+  'approveStudentApplication' : IDL.Func([IDL.Text, IDL.Principal], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'deleteAnnouncement' : IDL.Func([IDL.Nat], [], []),
   'deleteClassRoutine' : IDL.Func([IDL.Nat], [], []),
@@ -112,6 +131,7 @@ export const idlService = IDL.Service({
   'getAllRoutines' : IDL.Func([], [IDL.Vec(ClassRoutine)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getStudentsList' : IDL.Func([], [IDL.Vec(Student)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -124,7 +144,6 @@ export const idlService = IDL.Service({
       [IDL.Bool],
       ['query'],
     ),
-  'isUserApproved' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   'listApprovals' : IDL.Func([], [IDL.Vec(UserApprovalInfo)], ['query']),
   'promoteToEditor' : IDL.Func([IDL.Text], [], []),
   'rejectStudentApplication' : IDL.Func([IDL.Text], [], []),
@@ -135,6 +154,11 @@ export const idlService = IDL.Service({
   'setMasterLock' : IDL.Func([IDL.Bool], [], []),
   'setSectionLock' : IDL.Func([IDL.Text, IDL.Bool], [], []),
   'submitApplication' : IDL.Func([StudentApplication], [], []),
+  'tryStudentLogin' : IDL.Func(
+      [IDL.Text, IDL.Text],
+      [StudentLoginStatus],
+      ['query'],
+    ),
   'updateAnnouncement' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
   'updateClassRoutine' : IDL.Func([IDL.Nat, IDL.Vec(RoutineDay)], [], []),
   'updateClassTime' : IDL.Func(
@@ -218,6 +242,15 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'role' : Role,
   });
+  const ProfileResponse = IDL.Record({
+    'username' : IDL.Text,
+    'name' : IDL.Text,
+    'role' : Role,
+  });
+  const Student = IDL.Record({
+    'principal' : IDL.Principal,
+    'profile' : ProfileResponse,
+  });
   const ApprovalStatus = IDL.Variant({
     'pending' : IDL.Null,
     'approved' : IDL.Null,
@@ -226,6 +259,16 @@ export const idlFactory = ({ IDL }) => {
   const UserApprovalInfo = IDL.Record({
     'status' : ApprovalStatus,
     'principal' : IDL.Principal,
+  });
+  const StudentLoginStatus = IDL.Variant({
+    'pending' : IDL.Null,
+    'approved' : IDL.Record({
+      'principal' : IDL.Principal,
+      'name' : IDL.Text,
+      'role' : Role,
+    }),
+    'rejected' : IDL.Null,
+    'invalidCredentials' : IDL.Null,
   });
   
   return IDL.Service({
@@ -242,7 +285,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
-    'approveStudentApplication' : IDL.Func([IDL.Text], [], []),
+    'approveStudentApplication' : IDL.Func([IDL.Text, IDL.Principal], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'deleteAnnouncement' : IDL.Func([IDL.Nat], [], []),
     'deleteClassRoutine' : IDL.Func([IDL.Nat], [], []),
@@ -260,6 +303,7 @@ export const idlFactory = ({ IDL }) => {
     'getAllRoutines' : IDL.Func([], [IDL.Vec(ClassRoutine)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getStudentsList' : IDL.Func([], [IDL.Vec(Student)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -272,7 +316,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Bool],
         ['query'],
       ),
-    'isUserApproved' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
     'listApprovals' : IDL.Func([], [IDL.Vec(UserApprovalInfo)], ['query']),
     'promoteToEditor' : IDL.Func([IDL.Text], [], []),
     'rejectStudentApplication' : IDL.Func([IDL.Text], [], []),
@@ -283,6 +326,11 @@ export const idlFactory = ({ IDL }) => {
     'setMasterLock' : IDL.Func([IDL.Bool], [], []),
     'setSectionLock' : IDL.Func([IDL.Text, IDL.Bool], [], []),
     'submitApplication' : IDL.Func([StudentApplication], [], []),
+    'tryStudentLogin' : IDL.Func(
+        [IDL.Text, IDL.Text],
+        [StudentLoginStatus],
+        ['query'],
+      ),
     'updateAnnouncement' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
     'updateClassRoutine' : IDL.Func([IDL.Nat, IDL.Vec(RoutineDay)], [], []),
     'updateClassTime' : IDL.Func(

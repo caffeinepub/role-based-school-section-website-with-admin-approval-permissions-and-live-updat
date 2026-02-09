@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useGetAllApplications, useApproveApplication, useRejectApplication, usePromoteToEditor, useDemoteToStudent, useGetAnnouncements, useGetHomework, useGetRoutines, useGetClassTimes } from '../hooks/useQueries';
+import { useGetAllApplications, useApproveApplication, useRejectApplication, usePromoteToEditor, useDemoteToStudent, useGetApprovedStudents, useGetAnnouncements, useGetHomework, useGetRoutines, useGetClassTimes } from '../hooks/useQueries';
 import { useSetMasterLock, useSetSectionLock, useSetItemLock, useGetMasterLock, useGetSectionLock, useGetItemLock } from '../hooks/useLocks';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,12 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, XCircle, UserCog, User, Lock, Unlock, Shield } from 'lucide-react';
+import { CheckCircle, XCircle, UserCog, User, Lock, Unlock, Shield, AlertCircle, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import LockIndicator from '../components/LockIndicator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getErrorMessage, isAuthorizationError } from '../utils/adminErrors';
 
 export default function AdminDashboardPage() {
-  const { data: applications = [], isLoading } = useGetAllApplications();
+  const { data: applications = [], isLoading: applicationsLoading, error: applicationsError } = useGetAllApplications();
+  const { data: approvedStudents = [], isLoading: studentsLoading, error: studentsError } = useGetApprovedStudents();
   const { data: announcements = [] } = useGetAnnouncements();
   const { data: homework = [] } = useGetHomework();
   const { data: routines = [] } = useGetRoutines();
@@ -33,6 +36,19 @@ export default function AdminDashboardPage() {
   const setMasterLockMutation = useSetMasterLock();
   const setSectionLockMutation = useSetSectionLock();
   const setItemLockMutation = useSetItemLock();
+
+  // Log errors for debugging
+  useEffect(() => {
+    if (applicationsError) {
+      console.error('Applications query error:', applicationsError);
+    }
+  }, [applicationsError]);
+
+  useEffect(() => {
+    if (studentsError) {
+      console.error('Students query error:', studentsError);
+    }
+  }, [studentsError]);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -107,6 +123,47 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return <Badge variant="destructive">Admin</Badge>;
+      case 'studentEditor':
+        return <Badge variant="secondary">Editor</Badge>;
+      case 'student':
+        return <Badge variant="outline">Student</Badge>;
+      default:
+        return <Badge>{role}</Badge>;
+    }
+  };
+
+  // Helper to render error alerts
+  const renderErrorAlert = (error: unknown) => {
+    const isAuthError = isAuthorizationError(error);
+    const errorMessage = getErrorMessage(error);
+
+    if (isAuthError) {
+      return (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            You do not have permission to view this section. Only administrators can access this data.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Could not load data</AlertTitle>
+        <AlertDescription>
+          {errorMessage}
+        </AlertDescription>
+      </Alert>
+    );
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8">
@@ -127,81 +184,78 @@ export default function AdminDashboardPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Master Lock */}
-          <div className="p-4 bg-red-50 rounded-lg border-2 border-red-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Lock className="w-6 h-6 text-red-600" />
-                <div>
-                  <Label htmlFor="master-lock" className="text-lg font-semibold text-red-900">
-                    Master Lock
-                  </Label>
-                  <p className="text-sm text-red-700">Freeze all editing across the entire system</p>
-                </div>
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg border-2 border-red-200">
+            <div className="flex items-center gap-3">
+              <Lock className="w-6 h-6 text-red-600" />
+              <div>
+                <Label htmlFor="master-lock" className="text-base font-semibold text-gray-900">
+                  Master Lock
+                </Label>
+                <p className="text-sm text-gray-600">Lock all editing across the entire application</p>
               </div>
-              <Switch
-                id="master-lock"
-                checked={masterLocked}
-                onCheckedChange={handleMasterLockToggle}
-                disabled={setMasterLockMutation.isPending}
-              />
             </div>
+            <Switch
+              id="master-lock"
+              checked={masterLocked}
+              onCheckedChange={handleMasterLockToggle}
+            />
           </div>
 
           <Separator />
 
           {/* Section Locks */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Section Locks</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Section Locks</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2">
                   <LockIndicator isLocked={noticesLocked} />
-                  <Label htmlFor="notices-lock">Notices</Label>
+                  <Label htmlFor="notices-lock" className="font-medium">Notices</Label>
                 </div>
                 <Switch
                   id="notices-lock"
                   checked={noticesLocked}
                   onCheckedChange={(checked) => handleSectionLockToggle('notices', checked)}
-                  disabled={setSectionLockMutation.isPending}
+                  disabled={masterLocked}
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2">
                   <LockIndicator isLocked={homeworkLocked} />
-                  <Label htmlFor="homework-lock">Homework</Label>
+                  <Label htmlFor="homework-lock" className="font-medium">Homework</Label>
                 </div>
                 <Switch
                   id="homework-lock"
                   checked={homeworkLocked}
                   onCheckedChange={(checked) => handleSectionLockToggle('homework', checked)}
-                  disabled={setSectionLockMutation.isPending}
+                  disabled={masterLocked}
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2">
                   <LockIndicator isLocked={routineLocked} />
-                  <Label htmlFor="routine-lock">Class Routine</Label>
+                  <Label htmlFor="routine-lock" className="font-medium">Class Routine</Label>
                 </div>
                 <Switch
                   id="routine-lock"
                   checked={routineLocked}
                   onCheckedChange={(checked) => handleSectionLockToggle('routine', checked)}
-                  disabled={setSectionLockMutation.isPending}
+                  disabled={masterLocked}
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2">
                   <LockIndicator isLocked={classTimeLocked} />
-                  <Label htmlFor="classtime-lock">Class Time Schedule</Label>
+                  <Label htmlFor="classTime-lock" className="font-medium">Class Schedule</Label>
                 </div>
                 <Switch
-                  id="classtime-lock"
+                  id="classTime-lock"
                   checked={classTimeLocked}
                   onCheckedChange={(checked) => handleSectionLockToggle('classTime', checked)}
-                  disabled={setSectionLockMutation.isPending}
+                  disabled={masterLocked}
                 />
               </div>
             </div>
@@ -209,90 +263,82 @@ export default function AdminDashboardPage() {
 
           <Separator />
 
-          {/* Item Locks */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Individual Item Locks</h3>
+          {/* Item-Level Locks */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Item-Level Locks</h3>
             
             {/* Notices Items */}
             {announcements.length > 0 && (
-              <div className="mb-4">
-                <h4 className="font-medium text-sm text-gray-700 mb-2">Notices ({announcements.length})</h4>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {announcements.slice(0, 10).map((item) => {
-                    const ItemLockStatus = () => {
-                      const { data: isLocked = false } = useGetItemLock('notices', item.id);
-                      return (
-                        <div className="flex items-center justify-between p-2 bg-white rounded border">
-                          <div className="flex items-center gap-2 flex-1">
-                            <LockIndicator isLocked={isLocked} />
-                            <span className="text-sm truncate">{item.title}</span>
-                          </div>
-                          <Switch
-                            checked={isLocked}
-                            onCheckedChange={() => handleItemLockToggle('notices', item.id, isLocked)}
-                            disabled={setItemLockMutation.isPending}
-                          />
-                        </div>
-                      );
-                    };
-                    return <ItemLockStatus key={Number(item.id)} />;
-                  })}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-700">Notices</h4>
+                <div className="space-y-2">
+                  {announcements.map((announcement) => (
+                    <ItemLockRow
+                      key={announcement.id.toString()}
+                      section="notices"
+                      itemId={announcement.id}
+                      title={announcement.title}
+                      onToggle={handleItemLockToggle}
+                      disabled={masterLocked || noticesLocked}
+                    />
+                  ))}
                 </div>
               </div>
             )}
 
             {/* Homework Items */}
             {homework.length > 0 && (
-              <div className="mb-4">
-                <h4 className="font-medium text-sm text-gray-700 mb-2">Homework ({homework.length})</h4>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {homework.slice(0, 10).map((item) => {
-                    const ItemLockStatus = () => {
-                      const { data: isLocked = false } = useGetItemLock('homework', item.id);
-                      return (
-                        <div className="flex items-center justify-between p-2 bg-white rounded border">
-                          <div className="flex items-center gap-2 flex-1">
-                            <LockIndicator isLocked={isLocked} />
-                            <span className="text-sm truncate">{item.title}</span>
-                          </div>
-                          <Switch
-                            checked={isLocked}
-                            onCheckedChange={() => handleItemLockToggle('homework', item.id, isLocked)}
-                            disabled={setItemLockMutation.isPending}
-                          />
-                        </div>
-                      );
-                    };
-                    return <ItemLockStatus key={Number(item.id)} />;
-                  })}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-700">Homework</h4>
+                <div className="space-y-2">
+                  {homework.map((hw) => (
+                    <ItemLockRow
+                      key={hw.id.toString()}
+                      section="homework"
+                      itemId={hw.id}
+                      title={hw.title}
+                      onToggle={handleItemLockToggle}
+                      disabled={masterLocked || homeworkLocked}
+                    />
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Class Times Items */}
+            {/* Routine Items */}
+            {routines.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-700">Class Routines</h4>
+                <div className="space-y-2">
+                  {routines.map((routine) => (
+                    <ItemLockRow
+                      key={routine.id.toString()}
+                      section="routine"
+                      itemId={routine.id}
+                      title={`Routine #${routine.id}`}
+                      onToggle={handleItemLockToggle}
+                      disabled={masterLocked || routineLocked}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Class Time Items */}
             {classTimes.length > 0 && (
-              <div className="mb-4">
-                <h4 className="font-medium text-sm text-gray-700 mb-2">Class Times ({classTimes.length})</h4>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {classTimes.slice(0, 10).map((item) => {
-                    const ItemLockStatus = () => {
-                      const { data: isLocked = false } = useGetItemLock('classTime', item.id);
-                      return (
-                        <div className="flex items-center justify-between p-2 bg-white rounded border">
-                          <div className="flex items-center gap-2 flex-1">
-                            <LockIndicator isLocked={isLocked} />
-                            <span className="text-sm truncate">{item.weekDay} - {item.subject}</span>
-                          </div>
-                          <Switch
-                            checked={isLocked}
-                            onCheckedChange={() => handleItemLockToggle('classTime', item.id, isLocked)}
-                            disabled={setItemLockMutation.isPending}
-                          />
-                        </div>
-                      );
-                    };
-                    return <ItemLockStatus key={Number(item.id)} />;
-                  })}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-700">Class Schedule</h4>
+                <div className="space-y-2">
+                  {classTimes.map((classTime) => (
+                    <ItemLockRow
+                      key={classTime.id.toString()}
+                      section="classTime"
+                      itemId={classTime.id}
+                      title={`${classTime.weekDay} - ${classTime.subject}`}
+                      onToggle={handleItemLockToggle}
+                      disabled={masterLocked || classTimeLocked}
+                    />
+                  ))}
                 </div>
               </div>
             )}
@@ -300,16 +346,19 @@ export default function AdminDashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Student Applications */}
+      {/* Pending Applications */}
       <Card className="shadow-lg mb-8">
         <CardHeader>
-          <CardTitle>Student Applications</CardTitle>
-          <CardDescription>
-            Review and manage student access requests
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <User className="w-6 h-6 text-blue-600" />
+            Pending Applications
+          </CardTitle>
+          <CardDescription>Review and approve student applications</CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {applicationsError ? (
+            renderErrorAlert(applicationsError)
+          ) : applicationsLoading ? (
             <div className="text-center py-8 text-gray-500">Loading applications...</div>
           ) : applications.length === 0 ? (
             <div className="text-center py-8 text-gray-500">No pending applications</div>
@@ -331,12 +380,11 @@ export default function AdminDashboardPage() {
                       <TableCell className="font-medium">{app.name}</TableCell>
                       <TableCell>{app.className}</TableCell>
                       <TableCell>{app.section}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{app.username}</Badge>
-                      </TableCell>
+                      <TableCell>{app.username}</TableCell>
                       <TableCell className="text-right space-x-2">
                         <Button
                           size="sm"
+                          variant="default"
                           onClick={() => handleApprove(app.username)}
                           disabled={approveMutation.isPending}
                           className="bg-green-600 hover:bg-green-700"
@@ -363,24 +411,101 @@ export default function AdminDashboardPage() {
         </CardContent>
       </Card>
 
-      {/* User Management */}
+      {/* Approved Students */}
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>
-            Manage editor permissions for approved students
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-6 h-6 text-green-600" />
+            Approved Students
+          </CardTitle>
+          <CardDescription>Manage roles and permissions for approved students</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            <p className="mb-4">Use the buttons below to manage user roles:</p>
-            <div className="space-y-2 text-sm text-left max-w-md mx-auto">
-              <p><UserCog className="inline w-4 h-4 mr-2" />Promote students to editors to allow content editing</p>
-              <p><User className="inline w-4 h-4 mr-2" />Demote editors back to regular students</p>
+          {studentsError ? (
+            renderErrorAlert(studentsError)
+          ) : studentsLoading ? (
+            <div className="text-center py-8 text-gray-500">Loading students...</div>
+          ) : approvedStudents.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">No approved students yet</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {approvedStudents.map((student) => (
+                    <TableRow key={student.principal.toString()}>
+                      <TableCell className="font-medium">{student.profile.name}</TableCell>
+                      <TableCell>{student.profile.username}</TableCell>
+                      <TableCell>{getRoleBadge(student.profile.role)}</TableCell>
+                      <TableCell className="text-right space-x-2">
+                        {student.profile.role === 'student' ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handlePromote(student.profile.username)}
+                            disabled={promoteMutation.isPending}
+                          >
+                            <UserCog className="w-4 h-4 mr-1" />
+                            Promote to Editor
+                          </Button>
+                        ) : student.profile.role === 'studentEditor' ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDemote(student.profile.username)}
+                            disabled={demoteMutation.isPending}
+                          >
+                            <User className="w-4 h-4 mr-1" />
+                            Demote to Student
+                          </Button>
+                        ) : null}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// Helper component for item lock rows
+function ItemLockRow({
+  section,
+  itemId,
+  title,
+  onToggle,
+  disabled
+}: {
+  section: string;
+  itemId: bigint;
+  title: string;
+  onToggle: (section: string, itemId: bigint, currentState: boolean) => void;
+  disabled: boolean;
+}) {
+  const { data: isLocked = false } = useGetItemLock(section, itemId);
+
+  return (
+    <div className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200">
+      <div className="flex items-center gap-2">
+        <LockIndicator isLocked={isLocked} />
+        <span className="text-sm text-gray-700">{title}</span>
+      </div>
+      <Switch
+        checked={isLocked}
+        onCheckedChange={() => onToggle(section, itemId, isLocked)}
+        disabled={disabled}
+      />
     </div>
   );
 }

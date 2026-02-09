@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 9,
+  "projectStateVersion": 17,
   "summary": "Build a modern, mobile-responsive Class 8 (DOLON) school section website (GitHub Pages-deployable) with role selection (Student/Visitor/Admin), application + admin approval + login, visitor/admin shared-password access, admin dashboard with advanced controls (including section/item edit locking and master freeze), role/editor management, and live-updating content (notices/homework/routine/schedule) with clear lock indicators and a premium post-login dashboard UI in a professional blue/white animated theme.",
   "architectural_notes": [
     "Target deployment includes GitHub Pages (static hosting); real-time global sync and authentication/approval workflows will require a shared backend or hosted realtime database/service (not achievable with only local browser storage).",
@@ -8,9 +8,11 @@
     "Lock states (master freeze, per-section locks, per-item locks) must be enforced by the same permissions layer as editing (not only UI-disabled) and persisted/shared so all users see consistent lock status."
   ],
   "known_issues": [
-    "App currently renders as a blank white page (likely build/runtime error or routing/asset path issue on deployment)."
+    "App currently renders as a blank white page (likely build/runtime error or routing/asset path issue on deployment).",
+    "Student application → approval → login flow is not working: applicants can log in but cannot see approval/pending status, and pending approvals/users are not appearing in the Admin Dashboard.",
+    "Admin Dashboard shows an authorization/access error (\"I don't have access\") when trying to view student applications and approved users; admin cannot fetch these lists."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-implement-a-first-screen-role-selection-ui-with-three-large-interactive-options-student-visitor-admin-selecting-an-option-routes-the-user-into-the-correct-flow-without-full-page-reload-spa-behavior",
@@ -139,6 +141,46 @@
         "REQ-18"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-fix-the-student-login-flow-so-it-cannot-log-in-locally-without-checking-backend-approval-status-when-a-student-attempts-to-log-in-the-app-must-verify-the-username-password-against-backend-data-and-then-1-if-approved-create-a-student-session-and-navigate-to-home-2-if-still-pending-create-a-pending-session-and-navigate-to-pending-approval-3-if-rejected-not-found-invalid-password-show-a-clear-error-and-do-not-create-a-session",
+      "title": "Fix the Student Login flow so it cannot log in locally without checking backend approval status. When a student attempts to log in, the app must verify the username+password against backend data and then: (1) if approved, create a student session and navigate to /home; (2) if still pending, create a pending session and navigate to /pending-approval; (3) if rejected/not found/invalid password, show a clear error and do not create a session.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-admin-dashboard-data-visibility-so-pending-applications-and-approved-users-reliably-show-for-admins-the-admin-dashboard-must-1-show-pending-applications-from-the-backend-and-allow-approve-reject-and-2-show-a-list-of-approved-student-users-so-the-admin-can-see-users-and-later-manage-editor-permissions-if-backend-calls-fail-due-to-authorization-the-ui-must-display-an-english-error-state-instead-of-silently-showing-empty-tables",
+      "title": "Fix Admin Dashboard data visibility so pending applications and approved users reliably show for admins. The Admin Dashboard must (1) show pending applications from the backend and allow approve/reject; and (2) show a list of approved student users so the admin can see users (and later manage editor permissions). If backend calls fail due to authorization, the UI must display an English error state instead of silently showing empty tables.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-global-footer-credit-text-displays-exactly-made-by-sunyad-ahmed-shrabon-with-a-clear-polished-shine-shimmer-animation-that-is-visible-on-both-desktop-and-mobile-matches-the-existing-school-friendly-theme-and-respects-reduced-motion-preferences",
+      "title": "Ensure the global footer credit text displays exactly \"Made By Sunyad Ahmed Shrabon\" with a clear, polished shine/shimmer animation that is visible on both desktop and mobile, matches the existing school-friendly theme, and respects reduced-motion preferences.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-admin-authorization-initialization-so-that-an-admin-who-logs-in-via-the-shared-admin-password-can-successfully-call-admin-only-backend-methods-e-g-getallapplications-and-getstudentslist-without-receiving-an-unauthorized-access-denied-error",
+      "title": "Fix admin authorization initialization so that an admin who logs in via the shared admin password can successfully call admin-only backend methods (e.g., `getAllApplications()` and `getStudentsList()`) without receiving an unauthorized/access-denied error.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-admin-dashboard-error-handling-for-the-pending-applications-and-approved-students-queries-so-the-ui-does-not-always-label-any-error-as-access-denied-instead-display-a-clear-english-error-state-that-distinguishes-authorization-failures-from-other-failures-and-includes-the-underlying-error-message-for-debugging",
+      "title": "Improve the Admin Dashboard error handling for the Pending Applications and Approved Students queries so the UI does not always label any error as \"Access Denied\"; instead, display a clear English error state that distinguishes authorization failures from other failures and includes the underlying error message for debugging.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -228,6 +270,30 @@
       "id": "AR-14",
       "summary": "Add a shiny/animated credit text label: \"Made By Sunyad Ahmed Shrabon\" (e.g., shine effect in UI/footer)",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Update the backend to support a real student authentication + approval-status check for the Student Login page. Add backend methods that can: (a) validate username+password; (b) determine whether the account is pending or approved; (c) return the approved user role (student vs studentEditor) when approved. The backend must persist student credentials after approval (so approved students can still log in).",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Add backend support for the Admin Dashboard to fetch approved users (students) for display. Provide a backend admin-only query that returns the list of approved student profiles (at minimum: name, username, role).",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Update frontend actor initialization to ensure `_initializeAccessControlWithSecret(...)` is invoked consistently for admin sessions (including when no Internet Identity identity is present), using the existing `caffeineAdminToken` URL parameter handling in `frontend/src/hooks/useActor.ts`, so that admin backend calls are authorized.",
+      "reqIds": [
+        "REQ-25"
+      ],
       "status": "pending"
     }
   ],

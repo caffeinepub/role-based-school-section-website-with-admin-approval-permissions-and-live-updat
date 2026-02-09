@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add a subtle, shiny/animated credit label to the global app footer that matches the existing school-friendly theme.
+**Goal:** Fix admin authorization initialization so admins who log in with the shared password can access Admin Dashboard data/actions without erroneous access-denied errors, and improve Admin Dashboard error messages to distinguish authorization failures from other failures.
 
 **Planned changes:**
-- Update the shared layout/footer to display the exact text "Made By Sunyad Ahmed Shrabon" on all pages where the footer appears.
-- Style the credit text with a visible but subtle “shine” animation using the existing React + Tailwind CSS approach.
-- Respect `prefers-reduced-motion: reduce` by disabling the animation or replacing it with a non-animated style while keeping the text readable.
+- Ensure admin sessions consistently initialize backend access control with the shared admin secret/token so admin-only backend methods (e.g., applications list and students list) succeed after Admin Login.
+- Update frontend actor initialization so `_initializeAccessControlWithSecret(adminToken)` is invoked for admin sessions even when no Internet Identity identity is present (anonymous actor case), using the existing `caffeineAdminToken` URL parameter handling.
+- Improve Admin Dashboard error handling for Pending Applications and Approved Students queries to show “Access denied” only for authorization errors, and otherwise show a “Could not load data” message that includes the underlying error text; log errors to `console.error`.
 
-**User-visible outcome:** Users see a footer credit reading "Made By Sunyad Ahmed Shrabon" on all pages, with a subtle shine effect (or a non-animated equivalent when reduced motion is enabled).
+**User-visible outcome:** After logging in via Admin Login with the correct password, the Admin Dashboard loads Pending Applications and Approved Students (when data exists), admin actions (approve/reject/promote/demote/lock toggles) work, non-admin users remain blocked from admin-only methods, and dashboard errors are clearer and more informative.

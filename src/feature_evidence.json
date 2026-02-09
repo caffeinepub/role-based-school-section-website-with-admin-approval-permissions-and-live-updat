@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-shiny-animated-credit-label-with-the-exact-text-made-by-sunyad-ahmed-shrabon-to-the-global-app-footer-in-the-shared-layout-and-style-it-with-a-subtle-shine-effect-that-matches-the-existing-school-friendly-theme",
-      "featureTitle": "Add a shiny/animated credit label with the exact text \"Made By Sunyad Ahmed Shrabon\" to the global app footer (in the shared layout) and style it with a subtle “shine” effect that matches the existing school-friendly theme.",
+      "featureId": "feature-fix-admin-authorization-initialization-so-that-an-admin-who-logs-in-via-the-shared-admin-password-can-successfully-call-admin-only-backend-methods-e-g-getallapplications-and-getstudentslist-without-receiving-an-unauthorized-access-denied-error",
+      "featureTitle": "Fix admin authorization initialization so that an admin who logs in via the shared admin password can successfully call admin-only backend methods (e.g., `getAllApplications()` and `getStudentsList()`) without receiving an unauthorized/access-denied error.",
       "files": [
-        "frontend/src/components/AppLayout.tsx",
-        "frontend/src/index.css"
+        "frontend/src/pages/AdminDashboardPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,7 +17,28 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-18"
+        "REQ-24"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-improve-the-admin-dashboard-error-handling-for-the-pending-applications-and-approved-students-queries-so-the-ui-does-not-always-label-any-error-as-access-denied-instead-display-a-clear-english-error-state-that-distinguishes-authorization-failures-from-other-failures-and-includes-the-underlying-error-message-for-debugging",
+      "featureTitle": "Improve the Admin Dashboard error handling for the Pending Applications and Approved Students queries so the UI does not always label any error as \"Access Denied\"; instead, display a clear English error state that distinguishes authorization failures from other failures and includes the underlying error message for debugging.",
+      "files": [
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "frontend/src/utils/adminErrors.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "user-approval@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-26"
       ],
       "confidence": "high"
     }
