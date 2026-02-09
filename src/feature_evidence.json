@@ -1,0 +1,119 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-add-an-admin-lock-control-dashboard-ui-within-the-existing-admin-dashboard-route-that-provides-a-master-lock-switch-per-section-lock-toggles-for-notices-homework-routine-class-time-and-per-item-lock-toggles-for-the-latest-items-in-each-section-announcements-homework-routine-s-and-class-time-entries",
+      "featureTitle": "Add an Admin Lock Control Dashboard UI (within the existing Admin Dashboard route) that provides: a master lock switch, per-section lock toggles for Notices/Homework/Routine/Class Time, and per-item lock toggles for the latest items in each section (announcements, homework, routine(s), and class time entries).",
+      "files": [
+        "frontend/src/hooks/useLocks.ts",
+        "frontend/src/pages/AdminDashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "user-approval@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-13"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-display-clear-lock-unlock-indicators-and-locked-visual-states-across-the-app-for-both-sections-and-individual-items-including-greyed-out-content-tooltips-and-disabled-editing-controls-when-locked",
+      "featureTitle": "Display clear lock/unlock indicators (🔒 / 🔓) and locked visual states across the app for both sections and individual items, including greyed-out content, tooltips, and disabled editing controls when locked.",
+      "files": [
+        "frontend/src/components/LockIndicator.tsx",
+        "frontend/src/pages/ClassRoutinePage.tsx",
+        "frontend/src/pages/ClassTimeSchedulePage.tsx",
+        "frontend/src/pages/HomeworkPage.tsx",
+        "frontend/src/pages/NoticesPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "user-approval@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-14"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-premium-dashboard-style-home-page-for-class-8-dolon-that-becomes-the-primary-post-login-landing-page-for-all-authenticated-roles-admin-student-visitor-and-update-navigation-to-include-it",
+      "featureTitle": "Create a premium dashboard-style Home page for Class 8 (DOLON) that becomes the primary post-login landing page for all authenticated roles (Admin/Student/Visitor), and update navigation to include it.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/AppLayout.tsx",
+        "frontend/src/pages/AdminLoginPage.tsx",
+        "frontend/src/pages/HomePage.tsx",
+        "frontend/src/pages/StudentLoginPage.tsx",
+        "frontend/src/pages/VisitorLoginPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "user-approval@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-15"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-admin-only-home-page-cards-for-pending-student-approval-requests-section-lock-status-overview-and-quick-edit-shortcuts-to-locked-unlocked-sections",
+      "featureTitle": "Add Admin-only Home page cards for: pending student approval requests, section lock status overview, and quick edit shortcuts to locked/unlocked sections.",
+      "files": [
+        "frontend/src/pages/AdminDashboardPage.tsx",
+        "frontend/src/pages/HomePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "user-approval@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-16"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-integrate-lock-state-fetching-and-mutations-into-the-frontend-using-react-query-so-that-lock-indicators-and-disabled-editing-controls-stay-up-to-date-without-requiring-manual-refresh",
+      "featureTitle": "Integrate lock-state fetching and mutations into the frontend using React Query so that lock indicators and disabled editing controls stay up-to-date without requiring manual refresh.",
+      "files": [
+        "frontend/src/hooks/useLocks.ts",
+        "frontend/src/pages/ClassTimeSchedulePage.tsx",
+        "frontend/src/pages/HomeworkPage.tsx",
+        "frontend/src/pages/NoticesPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "user-approval@3.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-17"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

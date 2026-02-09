@@ -1,0 +1,80 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-09T09:08:41.139Z",
+  "summary": "Diff adds a frontend lock indicator component, React Query lock hooks, a new authenticated /home dashboard route with navigation updates, and admin UI wiring for lock toggles. Backend shows new LockState types/storage, but the diff summary is truncated before any lock query/mutation methods or server-side enforcement logic are evidenced. Some lock UI acceptance details (emoji indicators and exact tooltip behavior) are not clearly met from the shown code.",
+  "missing_requirements": [
+    {
+      "id": "REQ-11",
+      "requirement": "Backend exposes query methods to read current lock states (master lock, per-section locks, per-item locks) and admin-only update methods to set/unset them; lock enforcement is server-side for all create/update/delete methods with clear lock error messages.",
+      "reason": "backend/main.mo shows LockState types and a lockState variable, but the diff excerpt does not show any public query methods for reading locks, any admin-only setters (setMasterLock/setSectionLock/setItemLock), nor any checks inside CRUD mutations to reject edits when locked with clear lock-specific error messages. Frontend hooks call these methods, but their backend implementations are not evidenced in the provided diff summary.",
+      "evidence": [
+        "backend/main.mo",
+        "frontend/src/hooks/useLocks.ts"
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "requirement": "Lock enforcement takes precedence over editor permissions; editors cannot mutate locked sections/items; view-only students remain unable to edit; editor grant/revoke remains admin-only.",
+      "reason": "The diff excerpt shows existing role/editor helper functions (isEditor/requireEditor) but does not show any combined authorization + lock-precedence enforcement in the backend create/update/delete methods. Without seeing mutation guards that check lock state before editor permission, this requirement cannot be confirmed from the diff summary.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "requirement": "Display lock/unlock indicators using 🔒/🔓 across pages for sections and items, with smooth transitions; when a section is locked, add/edit/delete buttons are disabled for students/editors and the UI displays a tooltip that reads exactly: “This section is locked by admin.”",
+      "reason": "The new LockIndicator component uses lucide-react icons (Lock/Unlock) rather than the specified emoji indicators (🔒/🔓). Also, while the tooltip text default for locked state matches the required exact sentence, the diff excerpts do not clearly show the required tooltip being attached to disabled add/edit/delete controls on every page when section-locked, nor do they show section-level indicators explicitly using 🔒/🔓 near each page header.",
+      "evidence": [
+        "frontend/src/components/LockIndicator.tsx",
+        "frontend/src/pages/ClassRoutinePage.tsx",
+        "frontend/src/pages/NoticesPage.tsx",
+        "frontend/src/pages/HomeworkPage.tsx",
+        "frontend/src/pages/ClassTimeSchedulePage.tsx"
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "requirement": "Frontend has React Query hooks to fetch master lock state distinctly and keep indicators up to date.",
+      "reason": "useGetMasterLock() fetches lock state by calling actor.isContentLocked('notices', null), which appears to be a section lock check rather than a dedicated master-lock query. The diff summary does not show a distinct backend query for master lock being called from the frontend.",
+      "evidence": [
+        "frontend/src/hooks/useLocks.ts"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Lock indicators implemented with lucide-react Lock/Unlock icons and color changes instead of the specified 🔒/🔓 emoji indicators.",
+      "reason": "REQ-14 explicitly requires 🔒 / 🔓 indicators. The diff implements a different visual representation (lucide icons), which is an unrequested deviation.",
+      "evidence": [
+        "frontend/src/components/LockIndicator.tsx"
+      ]
+    },
+    {
+      "description": "Added a branded footer with a Caffeine icon/link (“Built with … using caffeine.ai”).",
+      "reason": "BuildRequest does not request adding external branding or attribution links in the UI. The diff shows a new footer section containing this content.",
+      "evidence": [
+        "frontend/src/components/AppLayout.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.62,
+  "changed_files": [
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/AppLayout.tsx",
+    "frontend/src/components/LockIndicator.tsx",
+    "frontend/src/hooks/useLocks.ts",
+    "frontend/src/pages/AdminDashboardPage.tsx",
+    "frontend/src/pages/AdminLoginPage.tsx",
+    "frontend/src/pages/ClassRoutinePage.tsx",
+    "frontend/src/pages/ClassTimeSchedulePage.tsx",
+    "frontend/src/pages/HomePage.tsx",
+    "frontend/src/pages/HomeworkPage.tsx",
+    "frontend/src/pages/NoticesPage.tsx",
+    "frontend/src/pages/StudentLoginPage.tsx",
+    "frontend/src/pages/VisitorLoginPage.tsx",
+    "project_state.json"
+  ]
+}

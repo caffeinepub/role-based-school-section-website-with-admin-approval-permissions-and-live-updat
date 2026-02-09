@@ -1,0 +1,180 @@
+{
+  "kind": "build_request",
+  "title": "Add advanced admin locking controls, lock indicators, and a premium post-login home dashboard for Class 8 (DOLON)",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-11",
+      "text": "Implement a backend locking system that allows the Admin to control edit access for Class 8 (DOLON) content via: (1) a master lock that freezes all edits, (2) per-section locks for Notices, Homework, Routine, and Class Time, and (3) per-item locks for individual announcements, homework items, routine entries, and class time entries.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Allow admin to: • Lock or unlock editing for any section (Notices, Homework, Routine, Class Time) • Lock or unlock individual items (specific notice, homework, or routine entry) • Temporarily freeze all edits with one master lock switch"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes query methods to read current lock states (master lock, per-section locks, and per-item locks).",
+        "Backend exposes admin-only update methods to set/unset: master lock, section locks, and item locks.",
+        "Lock state is enforced server-side for all create/update/delete methods for Notices, Homework, Class Routine, and Class Time so that locked content cannot be modified by students or student editors.",
+        "Master lock blocks all editing mutations (create/update/delete) for everyone; admin can still toggle lock states to recover.",
+        "When a lock prevents an edit, the backend rejects the call with a clear error message indicating the content/section is locked."
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Extend backend authorization so that editor assignment/revocation for specific students continues to work, and lock enforcement takes precedence over editor permissions (i.e., being an editor does not bypass any lock).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Assign and revoke editor permissions for specific Class 8 (DOLON) students",
+          "Locked content must not be editable by students or editors."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A student with editor permissions cannot add/edit/delete in any locked section or for any locked item.",
+        "A view-only student cannot edit regardless of lock state (existing behavior remains).",
+        "Admin can grant/revoke editor permissions as before; these actions remain admin-only.",
+        "Locking does not change who can view content; it only affects editing mutations."
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "text": "Add an Admin Lock Control Dashboard UI (within the existing Admin Dashboard route) that provides: a master lock switch, per-section lock toggles for Notices/Homework/Routine/Class Time, and per-item lock toggles for the latest items in each section (announcements, homework, routine(s), and class time entries).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Provide the admin with a powerful control dashboard for Class 8 (DOLON).",
+          "Allow admin to: • Lock or unlock editing for any section (Notices, Homework, Routine, Class Time) • Lock or unlock individual items ... • Temporarily freeze all edits with one master lock switch"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On /admin, admins can toggle the master lock on/off and see immediate UI feedback.",
+        "On /admin, admins can lock/unlock each section independently and see current status.",
+        "On /admin, admins can lock/unlock individual items (announcements, homework, routines, class time entries) via a clear list UI with item titles/identifiers and lock toggles.",
+        "All lock/unlock actions call backend mutations and show success/error toasts in English.",
+        "Non-admin users cannot access or see the lock control dashboard (route guard + UI visibility)."
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "text": "Display clear lock/unlock indicators (🔒 / 🔓) and locked visual states across the app for both sections and individual items, including greyed-out content, tooltips, and disabled editing controls when locked.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Show clear lock / unlock icons (🔒 / 🔓) next to sections and individual items.",
+          "Locked state: • Greyed-out content • Visible lock icon • Tooltip text: “This section is locked by admin.”",
+          "Locked content must not be editable by students or editors."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each main content page (Notices, Homework, Class Routine, Class Time Schedule) shows a section-level lock indicator near the page header (🔒 when locked, 🔓 when unlocked).",
+        "Each item card/row shows an item-level lock indicator (🔒/🔓) when applicable.",
+        "When a section is locked, the page’s add/edit/delete buttons are disabled for students and editors, and the UI displays a tooltip that reads exactly: “This section is locked by admin.”",
+        "When an individual item is locked, its edit/delete buttons are disabled for students and editors, and the item appears greyed-out (reduced opacity + non-editable affordance).",
+        "Icons and state changes use smooth transitions/animations (e.g., Tailwind transition classes) when toggling lock status."
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Create a premium dashboard-style Home page for Class 8 (DOLON) that becomes the primary post-login landing page for all authenticated roles (Admin/Student/Visitor), and update navigation to include it.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "HOME PAGE AFTER LOGIN (VERY IMPORTANT): - Create a premium dashboard-style home page for Class 8 (DOLON).",
+          "Display: • Welcome message (e.g., “Welcome to Class 8 (DOLON)”) • User role (Admin / Student / Visitor) • Latest notices preview • Today’s class routine • Quick-access cards (Notices, Homework, Routine)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new route (e.g., /home) exists and is accessible only when sessionRole is authenticated (admin/student/visitor).",
+        "After successful login (admin, student, visitor), the app navigates to the new Home page instead of directly to a content page.",
+        "Home page displays: “Welcome to Class 8 (DOLON)” and the current user role (Admin / Student / Visitor) in English.",
+        "Home page displays a latest notices preview (e.g., top 3 most recent announcements) with a link/button to open the full Notices page.",
+        "Home page displays today’s class routine section (based on today’s weekday and the latest routine data; if unavailable, show a friendly empty state in English).",
+        "Home page includes quick-access cards linking to Notices, Homework, and Routine pages.",
+        "Home page is fully mobile responsive and matches the existing blue/white, rounded card, soft shadow design language."
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "text": "Add Admin-only Home page cards for: pending student approval requests, section lock status overview, and quick edit shortcuts to locked/unlocked sections.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Admin-only home cards: • Pending student approval requests • Section lock status overview • Quick edit shortcuts"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the user role is Admin, the Home page shows a card with the number of pending student applications and a button linking to the Admin Dashboard applications table.",
+        "When the user role is Admin, the Home page shows a section lock status overview card listing each section (Notices/Homework/Routine/Class Time) with its current lock icon/state.",
+        "When the user role is Admin, the Home page shows quick edit shortcut buttons linking directly to the relevant pages (Notices/Homework/Routine/Schedule) and/or the lock control area in the Admin Dashboard.",
+        "When the user role is not Admin, none of these admin-only cards are visible."
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Integrate lock-state fetching and mutations into the frontend using React Query so that lock indicators and disabled editing controls stay up-to-date without requiring manual refresh.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Show clear lock / unlock icons ...",
+          "Locked content must not be editable ...",
+          "Smooth animations when locking or unlocking."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Frontend has React Query hooks to fetch lock state and to perform lock/unlock mutations (master, section, item).",
+        "After a lock/unlock mutation succeeds, relevant queries are invalidated/refetched so UI indicators update promptly across pages.",
+        "Lock state queries use a periodic refetch interval consistent with existing data hooks (current pattern refetches every ~5000ms).",
+        "If a user attempts an edit while locked (e.g., due to stale UI), the mutation failure is handled gracefully with an English toast/error message derived from the backend error."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
+    "Do not modify any files under frontend/src/components/ui (compose existing shadcn components instead).",
+    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and all files under frontend/src/components/ui.",
+    "Use English for all user-facing text.",
+    "Locking must be enforced server-side (backend) and not only via UI hiding/disablement."
+  ],
+  "nonGoals": [
+    "Implementing real-time updates via WebSockets or any push-based protocol (use the existing React Query refetch/invalidation strategy).",
+    "Adding third-party authentication providers (only the existing session system is in scope).",
+    "Creating separate class portals for multiple classes/sections beyond Class 8 (DOLON).",
+    "Designing or generating new logos/background images (no new image assets requested)."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-09T09:08:41.142Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 7,
+    "implemented": 5,
+    "items": [
+      {
+        "id": "REQ-11",
+        "summary": "Implement a backend locking system that allows the Admin to control edit access for Class 8 (DOLON) content via: (1) a master lock that freezes all edits, (2) per-section locks for Notices, Homework, Routine, and Class Time, and (3) per-item locks for individual announcements, homework items, routine entries, and class time entries.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-12",
+        "summary": "Extend backend authorization so that editor assignment/revocation for specific students continues to work, and lock enforcement takes precedence over editor permissions (i.e., being an editor does not bypass any lock).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-13",
+        "summary": "Add an Admin Lock Control Dashboard UI (within the existing Admin Dashboard route) that provides: a master lock switch, per-section lock toggles for Notices/Homework/Routine/Class Time, and per-item lock toggles for the latest items in each section (announcements, homework, routine(s), and class time entries).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/hooks/useLocks.ts",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminDashboardPage.tsx",
+          "frontend/src/hooks/useLocks.ts"
+        ]
+      },
+      {
+        "id": "REQ-14",
+        "summary": "Display clear lock/unlock indicators (🔒 / 🔓) and locked visual states across the app for both sections and individual items, including greyed-out content, tooltips, and disabled editing controls when locked.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/LockIndicator.tsx",
+          "frontend/src/pages/NoticesPage.tsx",
+          "frontend/src/pages/HomeworkPage.tsx",
+          "frontend/src/pages/ClassRoutinePage.tsx",
+          "frontend/src/pages/ClassTimeSchedulePage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/LockIndicator.tsx",
+          "frontend/src/pages/NoticesPage.tsx",
+          "frontend/src/pages/HomeworkPage.tsx",
+          "frontend/src/pages/ClassRoutinePage.tsx",
+          "frontend/src/pages/ClassTimeSchedulePage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-15",
+        "summary": "Create a premium dashboard-style Home page for Class 8 (DOLON) that becomes the primary post-login landing page for all authenticated roles (Admin/Student/Visitor), and update navigation to include it.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/HomePage.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/AppLayout.tsx",
+          "frontend/src/pages/StudentLoginPage.tsx",
+          "frontend/src/pages/VisitorLoginPage.tsx",
+          "frontend/src/pages/AdminLoginPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/HomePage.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/AppLayout.tsx",
+          "frontend/src/pages/StudentLoginPage.tsx",
+          "frontend/src/pages/VisitorLoginPage.tsx",
+          "frontend/src/pages/AdminLoginPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-16",
+        "summary": "Add Admin-only Home page cards for: pending student approval requests, section lock status overview, and quick edit shortcuts to locked/unlocked sections.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/HomePage.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/HomePage.tsx",
+          "frontend/src/pages/AdminDashboardPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-17",
+        "summary": "Integrate lock-state fetching and mutations into the frontend using React Query so that lock indicators and disabled editing controls stay up-to-date without requiring manual refresh.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useLocks.ts",
+          "frontend/src/pages/NoticesPage.tsx",
+          "frontend/src/pages/HomeworkPage.tsx",
+          "frontend/src/pages/ClassTimeSchedulePage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useLocks.ts",
+          "frontend/src/pages/NoticesPage.tsx",
+          "frontend/src/pages/HomeworkPage.tsx",
+          "frontend/src/pages/ClassTimeSchedulePage.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/AppLayout.tsx",
+    "frontend/src/components/LockIndicator.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useLocks.ts",
+    "frontend/src/pages/AdminDashboardPage.tsx",
+    "frontend/src/pages/AdminLoginPage.tsx",
+    "frontend/src/pages/ClassRoutinePage.tsx",
+    "frontend/src/pages/ClassTimeSchedulePage.tsx",
+    "frontend/src/pages/HomePage.tsx",
+    "frontend/src/pages/HomeworkPage.tsx",
+    "frontend/src/pages/NoticesPage.tsx",
+    "frontend/src/pages/StudentLoginPage.tsx",
+    "frontend/src/pages/VisitorLoginPage.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
